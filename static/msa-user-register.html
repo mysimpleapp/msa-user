@@ -1,0 +1,74 @@
+<link rel="import" href="/msa/msa.html"></link>
+<style>
+	msa-user-register {
+		flex: 1;
+	}
+	msa-user-register table {
+		width: 100%;
+		text-align: center;
+		padding: 10px;
+	}
+	msa-user-register .title {
+		font-weight: bold;
+		padding: 5px;
+		font-size: 20px;
+	}
+</style>
+<template id="msa-user-register">
+	<table class="unlogged">
+		<tr><td class="title">Register</td></tr>
+		<tr><td><input type=text name="name" placeholder="username"><br></td></tr>
+		<tr><td><input type=password name="pass" placeholder="password"><br></td></tr>
+		<tr><td><input type=text name="email" placeholder="email"><br></td></tr>
+		<tr><td><button class="register">Register</button></td></tr>
+	</table>
+	<table class="logged">
+		<tr><td><p>Vous êtes connecté en tant que <b class="name"></b></p></td></tr>
+		<tr><td><button class="logout">Déconnexion</button></td></tr>
+	</table>
+</template>
+<script>
+(function() {
+
+	// methods
+	var registerMethods = {}
+	registerMethods.init = function() {
+		var user = Msa.user
+		this.Q(".unlogged").style.display = user ? "none" : ""
+		this.Q(".logged").style.display = user ? "" : "none"
+		if(user) this.Q(".logged .name").textContent = user.name
+	}
+
+	// actions
+	var registerActions = []
+	registerActions.push({el:"button.register", evt:"click", act:function() {
+		var name = this.Q(".unlogged input[name=name]").value,
+			pass = this.Q(".unlogged input[name=pass]").value,
+			email = this.Q(".unlogged input[name=email]").value
+		Msa.post('/user/register',
+			{body: {name:name, pass:pass, email:email}},
+			function(user) {
+				if(user) location.reload()
+			}
+		)
+	}})
+	registerActions.push({el:"button.logout", evt:"click", act:function() {
+		Msa.post('/user/logout', null, function() {
+			location.reload()
+		})
+	}})
+
+	// register elements
+	Msa.registerElement("msa-user-register", {
+		template: "#msa-user-register",
+		oncreate: function() {
+			this.Q = Msa.Q
+			Object.assign(this, registerMethods)
+			Msa.addActions(this, registerActions)
+		},
+		onattach: function() {
+			this.init()
+		}
+	})
+})()
+</script>

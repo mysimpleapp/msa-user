@@ -1,6 +1,7 @@
 var msaUser = module.exports = Msa.module("user")
 
 // deps
+const { promisify: prm } = require('util')
 const md5 = require('md5')
 const cookieParser = require('cookie-parser')
 const session = require('express-session')
@@ -83,10 +84,26 @@ var _checkUserMdw = function(req, expr, next) {
 	checkUser(req.session.user, expr, next) && next()
 }
 
+// DB //////////////////////////////////////////////////////
+
+// DB model
+const { orm, Orm } = Msa.require("db")
+const UsersDb = orm.define('users', {
+	name: { type: Orm.STRING, primaryKey: true },
+	epass: Orm.STRING,
+	email: Orm.STRING,
+	groups: { type: Orm.TEXT,
+		get() { const val = this.getDataValue('groups'); return val ? val.split(','): val },
+		set(val) { if(val) val = val.join(','); this.setDataValue('groups', val) }
+	}
+})
+
+// creqtqe table in DB
+UsersDb.sync()
+
+
 
 // entry ////////////////////////////////////////////////////////////////
-
-var usersCol = Msa.require("db").collection("users")
 
 // replies
 var replyUser = function(req, res) { res.json(req.session.user || {}) }
@@ -119,20 +136,17 @@ msaUser.getPartial.use(function(req, res, next) {
 })
 
 // login
-var login = Msa.login = function(req, name, pass, next){
-	usersCol.findOne({name:name}, function(err, dbUser) {
-		if (err) return next(err)
-		_login(req, name, pass, dbUser, next)
-	})
-}
-var _login = function(req, name, pass, dbUser, next){
-	if (!dbUser) return next('Incorrect username.')
-	var epass = md5(pass)
-	if (dbUser.epass!=epass) return next('Incorrect password.')
-	var user = req.session.user = {}
-	user.name = dbUser.name
-	user.groups = dbUser.groups
-	next()
+var login = Msa.login = async function(req, name, pass, next){
+	try {
+		const dbUser = await UsersDb.findById(name)
+		if (!dbUser) return next('Incorrect username.')
+		var epass = md5(pass)
+		if (dbUser.epass!=epass) return next('Incorrect password.')
+		var user = req.session.user = {}
+		user.name = dbUser.name
+		user.groups = dbUser.groups
+		next()
+	} catch(err){ next(err) }
 }
 var loginMdw = function(req, res, next) {
 	var auth = req.headers.authorization, body = req.body
@@ -147,27 +161,25 @@ var loginMdw = function(req, res, next) {
 msaUser.app.post('/login', msaUser.mdw, loginMdw, replyUser)
 
 // register
-var register = msaUser.register = function(name, pass, arg1, arg2) {
-	if(arg2===undefined) { var next=arg1 }
-	else { var args=arg1, next=arg2 }
-	// check if the user already exists
-	usersCol.findOne(name, function(err, item) {
-		if(err) return next(err)
-		_register2(name, pass, args, item, next)
-	})
-}
-var _register2 = function(name, pass, args, item, next) {
-	if(item) return next("User id already exists.")
-	// encrypt pass & transform a little bit the args
-	var email = args && args.email
-	var user = {
-		name : name,
-		email : email,
-		epass : md5(pass),
-		groups : []
-	}
-	// insert user in DB
-	usersCol.insert(user, next)
+var register = msaUser.register = async function(name, pass, arg1, arg2) {
+	try {
+		if(arg2===undefined) { var next=arg1 }
+		else { var args=arg1, next=arg2 }
+		// check if the user already exists
+		const dbUser = await UsersDb.findById(name)
+		if(dbUser) return next("User id already exists.")
+		// encrypt pass & transform a little bit the args
+		var email = args && args.email
+		var user = {
+			name : name,
+			email : email,
+			epass : md5(pass),
+			groups : []
+		}
+		// insert user in DB
+		await UsersDb.create(user)
+		next()
+	} catch(err){ next(err) }
 }
 var registerMdw = function(req, res, next) {
 	var args = req.body
@@ -176,22 +188,21 @@ var registerMdw = function(req, res, next) {
 msaUser.app.post('/register', msaUser.mdw, registerMdw, loginMdw, replyUser)
 
 // addGroup
-var addGroup = msaUser.addGroup = function(name, group, next) {
-	usersCol.findOne({ name:name }, function(err, item) {
-		if(err) return next(err)
-		_addGroup2(name, group, item, next)
-	})
-}
-var _addGroup2 = function(name, group, item, next) {
-	if(!item) return next("User does not exist.")
-	// add group, if it does not exist yet
-	var group = group
-	var groups = item.groups
-	if(!(group in groups)) {
-		groups.push(group)
-		// update user in DB
-		usersCol.update({name:name}, {$set: {groups:groups}}, next)
-	}
+var addGroup = msaUser.addGroup = async function(name, group, next) {
+	try {
+		const dbUser = await UsersDb.findById(name)
+		if(!dbUser) return next("User does not exist.")
+		// add group, if it does not exist yet
+		var group = group
+		var groups = item.groups
+		if(!(group in groups)) {
+			groups.push(group)
+			// update user in DB
+			const nbRows = await UsersDb.update({ groups:groups }, { where:name })
+			if(nbRows === 0) return next("Could not update user.")
+		}
+		next()
+	} catch(err){ next(err) }
 }
 var addGroupMdw = function(req, res, next) {
 	var args = req.body
@@ -203,31 +214,35 @@ msaUser.app.post('/addGroup', msaUser.mdw, checkAdminUserMdw, addGroupMdw, reply
 
 msaUser.app.getAsPartial('/firstregister', { wel: '/user/msa-user-first-register.html' })
 
-var getOneAdminUser = function(next) {
-	usersCol.findOne({groups: {"$in":["admin"]}}, next)
+const getOneAdminUser = async function(next) {
+	try {
+		return await UsersDb.findAll({ where:{ groups:{ "like":"%admin%" }}})
+			.filter(user => user.groups.indexOf("admin") > -1)
+			[0]
+	} catch(err){ next(err) }
 }
-var checkNoAdminUserMdw = function(req, res, next) {
-	getOneAdminUser(function(err, adminUser) {
-		if(err) return next(err)
-		if(adminUser) return next('There is already an admin user.')
-		next()
-	})
+const getOneAdminUserPrm = prm(getOneAdminUser)
+const checkNoAdminUserMdw = async function(req, res, next) {
+	try {
+		const adminUser = await getOneAdminUserPrm()
+		next(adminUser ? 'There is already an admin user.' : null)
+	} catch(err){ next(err) }
 }
-var addAdminGroupMdw = function(req, res, next) {
-	var args = req.body
+const addAdminGroupMdw = function(req, res, next) {
+	const args = req.body
 	addGroup(args.name, 'admin', next)
 }
-var firstRegisterMdw = function(req, res, next) {
+const firstRegisterMdw = function(req, res, next) {
 	if(msaUser.onFirstRegister) msaUser.onFirstRegister(next)
 	else next()
 }
 msaUser.app.post('/firstregister', msaUser.mdw, checkNoAdminUserMdw, registerMdw, addAdminGroupMdw, loginMdw, firstRegisterMdw, replyUser)
 
-msaUser.isFirstRegisterDone = function(next) {
-	getOneAdminUser(function(err, user) {
-		if(err) return next(err)
+msaUser.isFirstRegisterDone = async function(next) {
+	try {
+		const user = await getOneAdminUserPrm()
 		user ? next(null, true) : next(null, false)
-	})
+	} catch(err){ next(err) }
 }
 
 // sheet box /////////////////////////////////////////////////////////

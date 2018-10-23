@@ -30,7 +30,9 @@ var checkUser = msaUser.checkUser = function(user, expr, next) {
 		return false
 	}
 }
-var _checkUser = function(user, expr) {	return true // TMP	var type = typeof expr
+var _checkUser = function(user, expr) {
+//	return true // TMP
+	const type = typeof expr
 	if(type==='function') return expr(user)
 	if(type==='boolean') return expr
 	if(type==='object') return _checkUserObj(user, expr)
@@ -87,7 +89,8 @@ var _checkUserMdw = function(req, expr, next) {
 // DB //////////////////////////////////////////////////////
 
 // DB model
-const { orm, Orm } = Msa.require("db")
+const { UsersDb } = require("./db")
+/*const { orm, Orm } = Msa.require("db")
 const UsersDb = orm.define('users', {
 	name: { type: Orm.STRING, primaryKey: true },
 	epass: Orm.STRING,
@@ -98,9 +101,9 @@ const UsersDb = orm.define('users', {
 	}
 })
 
-// creqtqe table in DB
+// create table in DB
 UsersDb.sync()
-
+*/
 
 
 // entry ////////////////////////////////////////////////////////////////
@@ -177,6 +180,7 @@ var register = msaUser.register = async function(name, pass, arg1, arg2) {
 			groups : []
 		}
 		// insert user in DB
+console.log(user)
 		await UsersDb.create(user)
 		next()
 	} catch(err){ next(err) }
@@ -193,12 +197,11 @@ var addGroup = msaUser.addGroup = async function(name, group, next) {
 		const dbUser = await UsersDb.findById(name)
 		if(!dbUser) return next("User does not exist.")
 		// add group, if it does not exist yet
-		var group = group
-		var groups = item.groups
-		if(!(group in groups)) {
+		var groups = dbUser.groups
+		if(groups.indexOf(group) === -1) {
 			groups.push(group)
 			// update user in DB
-			const nbRows = await UsersDb.update({ groups:groups }, { where:name })
+			const nbRows = await UsersDb.update({ groups:groups }, { where: { name }})
 			if(nbRows === 0) return next("Could not update user.")
 		}
 		next()
@@ -209,7 +212,7 @@ var addGroupMdw = function(req, res, next) {
 	addGroup(args.name, args.group, next)
 }
 msaUser.app.post('/addGroup', msaUser.mdw, checkAdminUserMdw, addGroupMdw, replyDone)
-
+/*
 // first register
 
 msaUser.app.getAsPartial('/firstregister', { wel: '/user/msa-user-first-register.html' })
@@ -244,7 +247,7 @@ msaUser.isFirstRegisterDone = async function(next) {
 		user ? next(null, true) : next(null, false)
 	} catch(err){ next(err) }
 }
-
+*/
 // sheet box /////////////////////////////////////////////////////////
 /*
 var sheetApp = Msa.require("msa-sheet")

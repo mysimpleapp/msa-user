@@ -16,9 +16,9 @@ msaUser.mdw = Msa.express.Router()
 msaUser.mdw.use(cookieParser())
 msaUser.mdw.use(session({ secret:Msa.params.user.secret, resave:false, saveUninitialized:false }))
 
-// partials /////////////////////////////////////////////////////////////
-msaUser.app.getAsPartial('/login', { wel: '/user/msa-user-login.html' })
-msaUser.app.getAsPartial('/register', { wel: '/user/msa-user-register.html' })
+// pages /////////////////////////////////////////////////////////////
+msaUser.app.get('/login', (req, res) => res.sendPage({ wel: '/user/msa-user-login.html' }))
+msaUser.app.get('/register', (req, res) => res.sendPage({ wel: '/user/msa-user-register.html' }))
 
 // checkUser ///////////////////////////////////////////////////////
 
@@ -26,12 +26,12 @@ var checkUser = msaUser.checkUser = function(user, expr, next) {
 	if(_checkUser(user, expr)) {
 		return true
 	} else {
-		next && next(user ? 403 : 401) // Forbidden : Unauthorized
+		next && next(user ? 403 : 401) // Forbidden : Unauthorized  // TODO: deprecate it
 		return false
 	}
 }
 var _checkUser = function(user, expr) {
-//	return true // TMP
+// return true // TMP
 	const type = typeof expr
 	if(type==='function') return expr(user)
 	if(type==='boolean') return expr
@@ -73,17 +73,35 @@ var _checkUserObj = function(user, expr) {
 	}
 }
 
-var checkUserMdw = msaUser.checkUserMdw = function(expr) {
-  var mdw = Msa.express.Router()
-  mdw.use(msaUser.mdw)
-  mdw.use(function(req, res, next) {
-		_checkUserMdw(req, expr, next)
+const checkUserMdw = msaUser.checkUserMdw = function(expr) {
+	var mdw = Msa.express.Router()
+	mdw.use(msaUser.mdw)
+	mdw.use((req, res, next) => {
+		if(!checkUser(req.session.user, expr))
+			next( req.session.user ? 403 : 401 )
+		else next()
 	})
-  return mdw
+	return mdw
 }
-var checkAdminUserMdw = msaUser.checkAdminUserMdw = checkUserMdw({group:'admin'})
-var _checkUserMdw = function(req, expr, next) {
-	checkUser(req.session.user, expr, next) && next()
+
+msaUser.checkUserPage = function(expr) {
+	var mdw = Msa.express.Router()
+	mdw.use(msaUser.mdw)
+	mdw.use((req, res, next) => {
+		if(!checkUser(req.session.user, expr))
+			res.sendPage(msaUser.unauthHtml)
+		else next()
+	})
+	return mdw
+}
+
+const checkAdminUserMdw = msaUser.checkAdminUserMdw = checkUserMdw({ group:'admin' })
+
+msaUser.unauthHtml = {
+	wel: '/user/msa-user-login.html',
+	attrs: {
+		unauthorized: true
+	}
 }
 
 // DB //////////////////////////////////////////////////////
@@ -92,7 +110,7 @@ var _checkUserMdw = function(req, expr, next) {
 const { UsersDb } = require("./db")
 /*const { orm, Orm } = Msa.require("db")
 const UsersDb = orm.define('users', {
-	name: { type: Orm.STRING, primaryKey: true },
+	name: { type: Orm.STRING, primaryKey: true },
 	epass: Orm.STRING,
 	email: Orm.STRING,
 	groups: { type: Orm.TEXT,
@@ -125,17 +143,16 @@ var logoutMdw = function(req, res, next){
 }
 msaUser.app.post('/logout', msaUser.mdw, logoutMdw, replyUser)
 
-// getPartial
-msaUser.getPartial = Msa.express.Router()
-msaUser.getPartial.use(msaUser.mdw)
-msaUser.getPartial.use(function(req, res, next) {
-	res.partial = { head:
-"<script> \
-	if(!window.Msa) Msa = MySimpleApp = {}; \
-	Msa.user = "+ JSON.stringify(req.session.user) +" \
-</script>"
-	}
-	next()
+// getHtml
+msaUser.getHtml = Msa.express.Router()
+msaUser.getHtml.use(msaUser.mdw)
+msaUser.getHtml.use(function(req, res, next) {
+	next({ head:
+`<script>
+	if(!window.Msa) Msa = MySimpleApp = {};
+	Msa.user = ${JSON.stringify(req.session.user)}
+</script>`
+	})
 })
 
 // login
@@ -152,13 +169,13 @@ var login = Msa.login = async function(req, name, pass, next){
 	} catch(err){ next(err) }
 }
 var loginMdw = function(req, res, next) {
-	var auth = req.headers.authorization, body = req.body
+	const auth = req.headers.authorization, body = req.body
 	if(auth){
-		var namepass = auth.split(' ')[1].split(':')
-		var name = namepass[0], pass = namepass[1]
+		var [name, pass] = auth.split(' ')[1].split(':')
 	} else if(body) {
-		var name = body.name, pass = body.pass
-	} else return next(400) // Bad Request
+		var { name, pass } = body
+	}
+	if(!name) return next(400) // Bad Request
 	login(req, name, pass, next)
 }
 msaUser.app.post('/login', msaUser.mdw, loginMdw, replyUser)

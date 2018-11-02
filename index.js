@@ -197,7 +197,6 @@ var register = msaUser.register = async function(name, pass, arg1, arg2) {
 			groups : []
 		}
 		// insert user in DB
-console.log(user)
 		await UsersDb.create(user)
 		next()
 	} catch(err){ next(err) }
@@ -229,42 +228,11 @@ var addGroupMdw = function(req, res, next) {
 	addGroup(args.name, args.group, next)
 }
 msaUser.app.post('/addGroup', msaUser.mdw, checkAdminUserMdw, addGroupMdw, replyDone)
-/*
-// first register
 
-msaUser.app.getAsPartial('/firstregister', { wel: '/user/msa-user-first-register.html' })
+// admin panel
+require("./admin")
 
-const getOneAdminUser = async function(next) {
-	try {
-		return await UsersDb.findAll({ where:{ groups:{ "like":"%admin%" }}})
-			.filter(user => user.groups.indexOf("admin") > -1)
-			[0]
-	} catch(err){ next(err) }
-}
-const getOneAdminUserPrm = prm(getOneAdminUser)
-const checkNoAdminUserMdw = async function(req, res, next) {
-	try {
-		const adminUser = await getOneAdminUserPrm()
-		next(adminUser ? 'There is already an admin user.' : null)
-	} catch(err){ next(err) }
-}
-const addAdminGroupMdw = function(req, res, next) {
-	const args = req.body
-	addGroup(args.name, 'admin', next)
-}
-const firstRegisterMdw = function(req, res, next) {
-	if(msaUser.onFirstRegister) msaUser.onFirstRegister(next)
-	else next()
-}
-msaUser.app.post('/firstregister', msaUser.mdw, checkNoAdminUserMdw, registerMdw, addAdminGroupMdw, loginMdw, firstRegisterMdw, replyUser)
 
-msaUser.isFirstRegisterDone = async function(next) {
-	try {
-		const user = await getOneAdminUserPrm()
-		user ? next(null, true) : next(null, false)
-	} catch(err){ next(err) }
-}
-*/
 // sheet box /////////////////////////////////////////////////////////
 /*
 var sheetApp = Msa.require("msa-sheet")

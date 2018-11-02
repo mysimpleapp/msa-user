@@ -29,8 +29,9 @@ const getOneAdminUser = () => {
 	return new Promise(async (ok, ko) => {
 		try {
 			var res
+			const { Orm } = Msa.require("db")
 			const { UsersDb } = require("./db")
-			const users = await UsersDb.findAll({ where:{ groups:{ "like":"%admin%" }}})
+			const users = await UsersDb.findAll({ where:{ groups:{ [Orm.Op.like]:"%admin%" }}})
 			const user = users.filter(user => user.groups.indexOf("admin") > -1)[0]
 			ok(user)
 		} catch(err){ ko(err) }

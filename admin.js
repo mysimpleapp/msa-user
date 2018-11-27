@@ -3,7 +3,7 @@ const msaAdmin = Msa.require("admin")
 
 const msaAdminUsers = module.exports = Msa.module()
 
-msaAdminUsers.app.get('/', (req, res) => res.sendPage({ wel:'/user/msa-admin-users.html' }))
+msaAdminUsers.app.get('/', (req, res) => res.sendPage({ wel:'/user/msa-user-admin.js' }))
 
 msaAdminUsers.app.get('/list', async (req, res, next) => {
 	try {

@@ -17,8 +17,29 @@ msaUser.mdw.use(cookieParser())
 msaUser.mdw.use(session({ secret:Msa.params.user.secret, resave:false, saveUninitialized:false }))
 
 // pages /////////////////////////////////////////////////////////////
-msaUser.app.get('/login', (req, res) => res.sendPage({ wel: '/user/msa-user-login.html' }))
-msaUser.app.get('/register', (req, res) => res.sendPage({ wel: '/user/msa-user-register.html' }))
+
+msaUser.app.get('/', (req, res) => res.redirect('/user/login') )
+
+msaUser.app.get('/login', msaUser.mdw, (req, res) => {
+	const user = req.session.user
+	res.sendPage({
+		wel: '/user/msa-user-login.js',
+		attrs: {
+			logged: user ? true : false,
+			name: user ? user.name : undefined
+		}
+	})
+})
+msaUser.app.get('/register', msaUser.mdw, (req, res) => {
+	const user = req.session.user
+	res.sendPage({
+		wel: '/user/msa-user-register.js',
+		attrs: {
+			logged: user ? true : false,
+			name: user ? user.name : undefined
+		}
+	})
+})
 
 // checkUser ///////////////////////////////////////////////////////
 
@@ -98,7 +119,7 @@ msaUser.checkUserPage = function(expr) {
 const checkAdminUserMdw = msaUser.checkAdminUserMdw = checkUserMdw({ group:'admin' })
 
 msaUser.unauthHtml = {
-	wel: '/user/msa-user-login.html',
+	wel: '/user/msa-user-login.js',
 	attrs: {
 		unauthorized: true
 	}
@@ -127,11 +148,11 @@ UsersDb.sync()
 // entry ////////////////////////////////////////////////////////////////
 
 // replies
-var replyUser = function(req, res) { res.json(req.session.user || {}) }
-var replyDone = function(req, res) { res.json({done:true}) }
+var replyUser = function(req, res) { res.json(req.session.user) }
+var replyDone = function(req, res) { res.sendStatus(200) }
 
-// islog
-msaUser.app.get('/islog', msaUser.mdw, replyUser)
+// user
+msaUser.app.get('/user', msaUser.mdw, replyUser)
 
 // logout
 var logout = msaUser.logout = function(req) {
@@ -149,8 +170,11 @@ msaUser.getHtml.use(msaUser.mdw)
 msaUser.getHtml.use(function(req, res, next) {
 	next({ head:
 `<script>
+	// MsaUser global variable
+	MsaUser = ${JSON.stringify(req.session.user)}
+	// deprecated
 	if(!window.Msa) Msa = MySimpleApp = {};
-	Msa.user = ${JSON.stringify(req.session.user)}
+	Msa.user = MsaUser
 </script>`
 	})
 })

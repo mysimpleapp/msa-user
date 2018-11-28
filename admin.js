@@ -1,7 +1,7 @@
 const { UsersDb } = require("./db")
 const msaAdmin = Msa.require("admin")
 
-const msaAdminUsers = module.exports = Msa.module()
+const msaAdminUsers = module.exports = new Msa.Module()
 
 msaAdminUsers.app.get('/', (req, res) => res.sendPage({ wel:'/user/msa-user-admin.js' }))
 

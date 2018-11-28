@@ -1,4 +1,4 @@
-var msaUser = module.exports = Msa.module("user")
+var msaUser = module.exports = new Msa.Module("user")
 
 // deps
 const { promisify: prm } = require('util')

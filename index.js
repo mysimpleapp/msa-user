@@ -1,4 +1,4 @@
-var msaUser = module.exports = new Msa.Module("user")
+const msaUser = module.exports = new Msa.Module("user")
 
 // deps
 const { promisify: prm } = require('util')
@@ -15,6 +15,10 @@ Msa.params.user = {
 msaUser.mdw = Msa.express.Router()
 msaUser.mdw.use(cookieParser())
 msaUser.mdw.use(session({ secret:Msa.params.user.secret, resave:false, saveUninitialized:false }))
+
+// perms 
+Object.assign(msaUser, require('./perm'))
+const permAdmin = msaUser.permAdmin
 
 // pages /////////////////////////////////////////////////////////////
 
@@ -43,6 +47,7 @@ msaUser.app.get('/register', msaUser.mdw, (req, res) => {
 
 // checkUser ///////////////////////////////////////////////////////
 
+/*
 var checkUser = msaUser.checkUser = function(user, expr, next) {
 	if(_checkUser(user, expr)) {
 		return true
@@ -93,30 +98,30 @@ var _checkUserObj = function(user, expr) {
 		}
 	}
 }
-
-const checkUserMdw = msaUser.checkUserMdw = function(expr) {
-	var mdw = Msa.express.Router()
-	mdw.use(msaUser.mdw)
-	mdw.use((req, res, next) => {
-		if(!checkUser(req.session.user, expr))
-			next( req.session.user ? 403 : 401 )
-		else next()
-	})
-	return mdw
+*/
+/*
+const genCheckPermMdw = ko => {
+	return function(perm, val=true) {
+		const permFun = (typeof perm === "function") ? perm : () => perm
+		const mdw = Msa.express.Router()
+		mdw.use(msaUser.mdw)
+		mdw.use((req, res, next) => {
+			const perm = permFun(req, res, next)
+			if(!perm.checkVal(req.session.user, val))
+				ko(req, res, next)
+			else next()
+		})
+		return mdw
+	}
 }
 
-msaUser.checkUserPage = function(expr) {
-	var mdw = Msa.express.Router()
-	mdw.use(msaUser.mdw)
-	mdw.use((req, res, next) => {
-		if(!checkUser(req.session.user, expr))
-			res.sendPage(msaUser.unauthHtml)
-		else next()
-	})
-	return mdw
-}
+msaUser.checkPermMdw = genCheckPermMdw((req, res, next) => 
+	next( req.session.user ? 403 : 401 ))
 
-const checkAdminUserMdw = msaUser.checkAdminUserMdw = checkUserMdw({ group:'admin' })
+msaUser.checkPermPage = genCheckPermMdw((req, res, next) =>
+	res.sendPage(msaUser.unauthHtml))
+
+const checkAdminMdw = msaUser.checkAdminMdw = msaUser.checkPermMdw(new Perm({ group:'admin' }))
 
 msaUser.unauthHtml = {
 	wel: '/user/msa-user-login.js',
@@ -124,6 +129,7 @@ msaUser.unauthHtml = {
 		unauthorized: true
 	}
 }
+*/
 
 // DB //////////////////////////////////////////////////////
 
@@ -251,10 +257,33 @@ var addGroupMdw = function(req, res, next) {
 	var args = req.body
 	addGroup(args.name, args.group, next)
 }
-msaUser.app.post('/addGroup', msaUser.mdw, checkAdminUserMdw, addGroupMdw, replyDone)
+msaUser.app.post('/addGroup', msaUser.mdw, permAdmin.checkMdw(), addGroupMdw, replyDone)
 
 // admin panel
 require("./admin")
+
+
+// PermParamDef /////////////////////////////
+
+const { ParamDef } = Msa.require("params")
+
+msaUser.PermParamDef = class extends ParamDef {
+	format(val) {
+		return JSON.stringify(val.expr)
+	}
+	parse(val) {
+		return new Perm(JSON.parse(val))
+	}
+}
+
+msaUser.PermNumParamDef = class extends ParamDef {
+	format(val) {
+		return JSON.stringify(val.expr)
+	}
+	parse(val) {
+		return new PermNum(JSON.parse(val))
+	}
+}
 
 
 // sheet box /////////////////////////////////////////////////////////

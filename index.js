@@ -263,11 +263,11 @@ msaUser.app.post('/addGroup', msaUser.mdw, permAdmin.checkMdw(), addGroupMdw, re
 require("./admin")
 
 
-// PermParamDef /////////////////////////////
+// PermParam /////////////////////////////
 
-const { ParamDef } = Msa.require("params")
+const { Param } = Msa.require("params")
 
-msaUser.PermParamDef = class extends ParamDef {
+msaUser.PermParam = class extends Param {
 	format(val) {
 		return JSON.stringify(val.expr)
 	}
@@ -276,7 +276,7 @@ msaUser.PermParamDef = class extends ParamDef {
 	}
 }
 
-msaUser.PermNumParamDef = class extends ParamDef {
+msaUser.PermNumParam = class extends Param {
 	format(val) {
 		return JSON.stringify(val.expr)
 	}

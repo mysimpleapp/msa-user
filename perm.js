@@ -25,6 +25,7 @@ exp.PermBase = class {
 	}
 
 	exprCheck(expr, user, val) {
+		if(!user) return this.noMatchVal
 		if(isAdmin(user)) return true
 		if(val === undefined) val = this.defVal
 		if(typeof expr === "function") expr = expr(user)
@@ -40,17 +41,14 @@ exp.PermBase = class {
 		// non object
 		if(typeof expr !== "object")
 			return expr
-		// user
-		if(user) {
-			// name
-			const name = expr.name
-			if(name && user.name==name)
-				return getExprVal(this, expr)
-			// group
-			const group = expr.group, userGroups = user.groups
-			if(group && userGroups && userGroups.indexOf(group)!=-1)
-				return getExprVal(this, expr)
-		}
+		// name
+		const name = expr.name
+		if(name && user.name==name)
+			return getExprVal(this, expr)
+		// group
+		const group = expr.group, userGroups = user.groups
+		if(group && userGroups && userGroups.indexOf(group)!=-1)
+			return getExprVal(this, expr)
 		// default
 		return this.noMatchVal
 	}

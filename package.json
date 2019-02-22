@@ -12,5 +12,11 @@
     "cookie-parser": "^1.4.3",
     "express-session": "^1.15.6",
     "md5": "^2.2.1"
+  },
+  "msaKey": "user",
+  "msaDependencies": {
+    "admin": "../msa-admin",
+    "db": "../msa-db",
+    "params": "../msa-params"
   }
 }

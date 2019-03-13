@@ -1,6 +1,6 @@
 {
   "name": "@mysimpleapp/msa-user",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MySimpleApp core module managing application users",
   "main": "index.js",
   "scripts": {
@@ -15,8 +15,8 @@
   },
   "msaKey": "user",
   "msaDependencies": {
-    "admin": "../msa-admin",
-    "db": "../msa-db",
-    "params": "../msa-params"
+    "admin": "@mysimpleapp/msa-admin",
+    "db": "@mysimpleapp/msa-db",
+    "params": "@mysimpleapp/msa-params"
   }
 }

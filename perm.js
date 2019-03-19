@@ -1,6 +1,6 @@
 const exp = module.exports = {}
 
-const { mdw: userMdw } = require("./index.js")
+const userMdw = require('./mdw')
 
 // unauthorized /////////////////////
 
@@ -198,5 +198,4 @@ exp.PermNum = class extends exp.PermBase {
 exp.PermNum.prototype.noMatchVal = 0
 exp.PermNum.prototype.defVal = 1
 exp.PermNum.prototype.adminVal = Infinity
-
 

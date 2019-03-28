@@ -171,9 +171,12 @@ exp.Perm = class extends exp.PermBase {
 }
 
 
-// PermAdmin
+// perm instances
 
 exp.permAdmin = new exp.Perm({ group: "admin" })
+
+exp.permPublic = new exp.Perm(true)
+exp.permPublic.noMatchVal = true
 
 
 // PermNum /////////////////////////////////

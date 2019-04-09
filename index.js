@@ -13,6 +13,9 @@ msaUser.mdw = userMdw // TODO: deprecate
 Object.assign(msaUser, require('./perm'))
 const permAdmin = msaUser.permAdmin
 
+// param
+Object.assign(msaUser, require('./param'))
+
 // pages /////////////////////////////////////////////////////////////
 
 msaUser.app.get('/', (req, res) => res.redirect('/user/login') )

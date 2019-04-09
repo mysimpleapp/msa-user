@@ -140,7 +140,7 @@ exp.PermBase.prototype.adminVal = true
 // private methods
 
 function getExprVal(perm, expr) {
-	const val = expr.val
+	let val = expr.val
 	if(val === undefined) val = perm.defVal
 	return val
 }

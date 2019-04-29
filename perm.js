@@ -20,37 +20,47 @@ exp.PermBase = class {
 		Object.assign(this, kwargs)
 	}
 
-	check(user, val) {
-		return this.exprCheck(this.expr, user, val)
+	check(user, expVal, prevVal) {
+		return this.exprCheck(this.expr, user, expVal, prevVal)
 	}
 
-	exprCheck(expr, user, val) {
-		if(!user) return this.noMatchVal
-		if(isAdmin(user)) return true
-		if(val === undefined) val = this.defVal
+	exprCheck(expr, user, expVal, prevVal) {
+		if(expVal === undefined) expVal = this.defVal
+		const val = this.exprSolve(expr, user, prevVal)
+		return this._check(val, expVal)
+	}
+
+	solve(user, prevVal) {
+		return this.exprCheck(this.expr, user, prevVal)
+	}
+
+	exprSolve(expr, user, prevVal) {
+		if(prevVal===undefined) prevVal = this.getDefaultVal(user)
 		if(typeof expr === "function") expr = expr(user)
-		const userVal = this._solveUserVal(expr, user)
-		return this._checkVal(userVal, val)
+		const val = this._solve(expr, user)
+		return (val === undefined) ? prevVal : val
 	}
 
-	_checkVal(userVal, val) {
-		return userVal === val
+	getDefaultVal(user) {
+		return isAdmin(user)
 	}
 
-	_solveUserVal(expr, user) {
+	_check(val, expVal) {
+		return val === expVal
+	}
+
+	_solve(expr, user) {
 		// non object
 		if(typeof expr !== "object")
 			return expr
 		// name
 		const name = expr.name
-		if(name && user.name==name)
+		if(name && user && user.name==name)
 			return getExprVal(this, expr)
 		// group
-		const group = expr.group, userGroups = user.groups
+		const group = expr.group, userGroups = user && user.groups
 		if(group && userGroups && userGroups.indexOf(group)!=-1)
 			return getExprVal(this, expr)
-		// default
-		return this.noMatchVal
 	}
 
 	// MDWS //////////////////////////////
@@ -98,44 +108,8 @@ exp.PermBase = class {
 			})
 		}
 	}
-/*
-	_genCheckMdw() {
-		let mdw = this._checkMdw
-		if(!mdw) {
-			mdw = this._checkMdw = Msa.express.Router()
-			mdw.use(msaUser.mdw)
-			mdw.use((req, res, next) => {
-				if(!this.check(req.session.user, req.msaUserCheckVal))
-					next(req.session.user ? 403 : 401)
-				else next()
-			})
-		}
-		return mdw
-	}
-
-	checkMdw(val) {
-		const mdw = this._genCheckMdw()
-		return (req, res, next) => {
-			req.msaUserCheckVal = val
-			mdw(req, res, next)
-		}
-	}
-
-	checkPage(val) {
-		const mdw = this._genCheckMdw()
-		return (req, res, next) => {
-			req.msaUserCheckVal = val
-			mdw(req, res, err => {
-				if(err) res.sendPage(unauthHtml)
-				else next()
-			})
-		}
-	}
-*/
 }
-exp.PermBase.prototype.noMatchVal = false
 exp.PermBase.prototype.defVal = true
-exp.PermBase.prototype.adminVal = true
 
 // private methods
 
@@ -155,18 +129,18 @@ function isAdmin(user) {
 
 exp.Perm = class extends exp.PermBase {
 
-	_solveUserVal(expr, user) {
+	_solve(expr, user) {
 		// not
 		const not = expr.not
-		if(not) return ! this._solveUserVal(not, user)
+		if(not) return ! this._solve(not, user)
 		// and
 		const and = expr.and
-		if(and) return and.map(a => this._solveUserVal(a, user)).reduce((acc, val) => acc && val)
+		if(and) return and.map(a => this._solve(a, user)).reduce((acc, val) => acc && val)
 		// or
 		const or = expr.or
-		if(or) return or.map(o => this._solveUserVal(o, user)).reduce((acc, val) => acc || val)
+		if(or) return or.map(o => this._solve(o, user)).reduce((acc, val) => acc || val)
 		// super
-		return super._solveUserVal(expr, user)
+		return super._solve(expr, user)
 	}
 }
 
@@ -176,29 +150,26 @@ exp.Perm = class extends exp.PermBase {
 exp.permAdmin = new exp.Perm({ group: "admin" })
 
 exp.permPublic = new exp.Perm(true)
-exp.permPublic.noMatchVal = true
 
 
 // PermNum /////////////////////////////////
 
 exp.PermNum = class extends exp.PermBase {
 
-	_checkVal(userVal, val) {
-		return userVal >= val
+	_check(val, expVal) {
+		return val >= expVal
 	}
 
-	_solveUserVal(expr, user) {
+	_solve(expr, user) {
 		// and
 		const and = expr.and
-		if(and) return Math.min(and.map(a => this._solveUserVal(a, user)))
+		if(and) return Math.min(and.map(a => this._solve(a, user)))
 		// or
 		const or = expr.or
-		if(or) return Math.max(or.map(o => this._solveUserVal(o, user)))
+		if(or) return Math.max(or.map(o => this._solve(o, user)))
 		// super
-		return super._solveUserVal(expr, user)
+		return super._solve(expr, user)
 	}
 }
-exp.PermNum.prototype.noMatchVal = 0
 exp.PermNum.prototype.defVal = 1
-exp.PermNum.prototype.adminVal = Infinity
 

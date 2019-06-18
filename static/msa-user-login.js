@@ -5,7 +5,7 @@ import { Q, ajax, importHtml } from '/msa/msa.js'
 const contentUnlogged = `
 	<h1 class="title"></h1>
 	<p class="text"></p>
-	<line><input type=text name="username" placeholder="username"></line>
+	<line><input type=text name="name" placeholder="username"></line>
 	<line><input type=password name="pass" placeholder="password"></line>
 	<line><button class="login">Connexion</button></line>
 `
@@ -107,7 +107,7 @@ MsaUserLoginPt.initActions = function(){
 }
 
 MsaUserLoginPt.postLogin = function(){
-	const name = this.Q("input[name=username]").value,
+	const name = this.Q("input[name=name]").value,
 		pass = this.Q("input[name=pass]").value
 	ajax('POST', '/user/login',
 		{ header:{ Authorization: "Basic "+name+":"+pass }},

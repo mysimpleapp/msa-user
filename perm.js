@@ -25,28 +25,25 @@ exp.PermBase = class {
 	}
 
 	exprCheck(expr, user, expVal, prevVal) {
-		if(expVal === undefined) expVal = this.defVal
+		if(isAdmin(user)) return true
+		if(expVal === undefined) expVal = this.getDefVal()
 		const val = this.exprSolve(expr, user, prevVal)
-		return this._check(val, expVal)
+		return this.checkVal(expVal, val)
 	}
 
 	solve(user, prevVal) {
-		return this.exprCheck(this.expr, user, prevVal)
+		return this.exprSolve(this.expr, user, prevVal)
 	}
 
 	exprSolve(expr, user, prevVal) {
-		if(prevVal===undefined) prevVal = this.getDefaultVal(user)
+		if(expr === undefined) return prevVal
 		if(typeof expr === "function") expr = expr(user)
 		const val = this._solve(expr, user)
 		return (val === undefined) ? prevVal : val
 	}
 
-	getDefaultVal(user) {
-		return isAdmin(user)
-	}
-
-	_check(val, expVal) {
-		return val === expVal
+	checkVal(expVal, val) {
+		return (val !== undefined) ? (val === expVal) : false
 	}
 
 	_solve(expr, user) {
@@ -109,13 +106,12 @@ exp.PermBase = class {
 		}
 	}
 }
-exp.PermBase.prototype.defVal = true
 
 // private methods
 
 function getExprVal(perm, expr) {
 	let val = expr.val
-	if(val === undefined) val = perm.defVal
+	if(val === undefined) val = perm.getDefVal()
 	return val
 }
 
@@ -128,6 +124,10 @@ function isAdmin(user) {
 // Perm ////////////////////////////////
 
 exp.Perm = class extends exp.PermBase {
+
+	getDefVal() {
+		return true
+	}
 
 	_solve(expr, user) {
 		// not
@@ -144,10 +144,9 @@ exp.Perm = class extends exp.PermBase {
 	}
 }
 
-
 // perm instances
 
-exp.permAdmin = new exp.Perm({ group: "admin" })
+exp.permAdmin = new exp.Perm(false)
 
 exp.permPublic = new exp.Perm(true)
 
@@ -156,8 +155,12 @@ exp.permPublic = new exp.Perm(true)
 
 exp.PermNum = class extends exp.PermBase {
 
-	_check(val, expVal) {
-		return val >= expVal
+	getDefVal() {
+		return Number.MAX_VALUE
+	}
+
+	checkVal(expVal, val) {
+		return (val !== undefined) ? (val >= expVal) : false
 	}
 
 	_solve(expr, user) {
@@ -171,5 +174,8 @@ exp.PermNum = class extends exp.PermBase {
 		return super._solve(expr, user)
 	}
 }
-exp.PermNum.prototype.defVal = 1
+
+exp.permNumAdmin = new exp.Perm(0)
+
+exp.permNumPublic = new exp.PermNum(Number.MAX_VALUE)
 

@@ -28,7 +28,7 @@ exp.PermBase = class {
 		if(isAdmin(user)) return true
 		if(expVal === undefined) expVal = this.getDefVal()
 		const val = this.exprSolve(expr, user, prevVal)
-		return this.checkVal(expVal, val)
+		return this._checkVal(expVal, val)
 	}
 
 	solve(user, prevVal) {
@@ -36,13 +36,21 @@ exp.PermBase = class {
 	}
 
 	exprSolve(expr, user, prevVal) {
-		if(expr === undefined) return prevVal
-		if(typeof expr === "function") expr = expr(user)
-		const val = this._solve(expr, user)
-		return (val === undefined) ? prevVal : val
+		let val = prevVal
+		if(expr !== undefined) {
+			if(isArr(expr)) {
+				for(let i=0, len=expr.length; i<len; ++i)
+					val = this.exprSolve(expr[i], user, val)
+			} else {
+				if(typeof expr === "function") expr = expr(user)
+				const newVal = this._solve(expr, user)
+				if(newVal !== undefined) val = newVal
+			}
+		}
+		return val
 	}
 
-	checkVal(expVal, val) {
+	_checkVal(expVal, val) {
 		return (val !== undefined) ? (val === expVal) : false
 	}
 
@@ -105,6 +113,21 @@ exp.PermBase = class {
 			})
 		}
 	}
+
+	// format
+
+	prettyFormat() {
+		return this.exprPrettyFormat(this.expr)
+	}
+
+	exprPrettyFormat(expr) {
+		if(expr === undefined) return ""
+		if(typeof expr === "function") return "[FUN]"
+		if(typeof expr !== "object") return expr
+		if(expr.name) return "( name: " + expr.name + " )"
+		if(expr.group) return "( group: " + expr.group + " )"
+		return ""
+	}
 }
 
 // private methods
@@ -134,13 +157,26 @@ exp.Perm = class extends exp.PermBase {
 		const not = expr.not
 		if(not) return ! this._solve(not, user)
 		// and
-		const and = expr.and
-		if(and) return and.map(a => this._solve(a, user)).reduce((acc, val) => acc && val)
+//		const and = expr.and
+//		if(and) return and.map(a => this._solve(a, user)).reduce((acc, val) => acc && val)
 		// or
-		const or = expr.or
-		if(or) return or.map(o => this._solve(o, user)).reduce((acc, val) => acc || val)
+//		const or = expr.or
+//		if(or) return or.map(o => this._solve(o, user)).reduce((acc, val) => acc || val)
 		// super
 		return super._solve(expr, user)
+	}
+
+	// format
+
+	exprPrettyFormat(expr) {
+		if(isArr(expr))
+			return expr.map(e => this.exprPrettyFormat(e)).join("; ")
+		if(typeof expr !== "object") {
+			if(expr.not) return "(NOT " + this.exprPrettyFormat(expr.not) + " )"
+//			if(expr.or) return "( " + expr.or.map(or => this.exprPrettyFormat(or)).join(" OR ") + " )"
+//			if(expr.and) return "( " + expr.and.map(and => this.exprPrettyFormat(and)).join(" AND ") + " )"
+		}
+		return super.exprPrettyFormat(expr)
 	}
 }
 
@@ -159,7 +195,7 @@ exp.PermNum = class extends exp.PermBase {
 		return Number.MAX_VALUE
 	}
 
-	checkVal(expVal, val) {
+	_checkVal(expVal, val) {
 		return (val !== undefined) ? (val >= expVal) : false
 	}
 
@@ -173,9 +209,28 @@ exp.PermNum = class extends exp.PermBase {
 		// super
 		return super._solve(expr, user)
 	}
+
+	// format
+
+	exprPrettyFormat(expr) {
+		if(typeof expr !== "object") {
+			if(expr.or) return "( " + expr.or.map(or => this.exprPrettyFormat(or)).join(" OR ") + " )"
+			if(expr.and) return "( " + expr.and.map(and => this.exprPrettyFormat(and)).join(" AND ") + " )"
+		}
+		if(typeof expr === "number") {
+			const labels = this.getLabels()
+			const label = labels ? labels[expr] : null
+			if(label) return label.name
+		}
+		return super.exprPrettyFormat(expr)
+	}
 }
 
 exp.permNumAdmin = new exp.Perm(0)
 
 exp.permNumPublic = new exp.PermNum(Number.MAX_VALUE)
 
+
+// utils
+
+const isArr = Array.isArray

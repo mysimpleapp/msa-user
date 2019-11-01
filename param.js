@@ -1,6 +1,6 @@
 const exp = module.exports = {}
 
-const { Perm, PermNum } = require("./perm")
+const { PermBase, Perm, PermNum } = require("./perm")
 const { Param, ParamDef } = Msa.require("params")
 
 // DEPRECATED ?
@@ -13,25 +13,31 @@ exp.ParamPerm = class extends Param {
 	}
 }
 
-exp.genPermParamDef = function(cls) {
+PermBase.genPermParamDef = function() {
 	return class extends ParamDef {
 		format(val){
 			return val.expr
 		}
+		prettySerialize(val){
+			return val.prettyFormat()
+		}
 		parse(val){
-			return new cls(val)
+			return new this(val)
+		}
+		getEditor(){
+			return { wel: "/user/msa-user-perm-editor.js" }
 		}
 	}
 }
 
-exp.newPermParamDef = function(cls, defVal, kwargs) {
-	const paramDef = exp.genPermParamDef(cls)
+PermBase.newPermParamDef = function(defVal, kwargs) {
+	const paramDef = this.genPermParamDef()
 	return new paramDef(Object.assign({
-		defVal: new cls(defVal)
+		defVal: new this(defVal)
 	}, kwargs))
 }
 
-exp.PermParamDef = exp.genPermParamDef(Perm)
+exp.PermParamDef = Perm.genPermParamDef()
 
-exp.PermNumParamDef = exp.genPermParamDef(PermNum)
+exp.PermNumParamDef = PermNum.genPermParamDef()
 

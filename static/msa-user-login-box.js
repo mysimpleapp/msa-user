@@ -1,4 +1,9 @@
-import { Q, ajax, importHtml } from '/msa/msa.js'
+import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
+
+const popupDeps = `
+	<script type="module" src="/utils/msa-utils-popup.js"></script>`
+const createConfirmPopup = importOnCall(popupDeps, "MsaUtils.createConfirmPopup")
+
 
 const contentUnlogged = `
 		<div><input type=text size=10 name="name" placeholder="username"></div>
@@ -69,9 +74,9 @@ MsaUserLoginBoxPt.postLogin = function(){
 	const name = this.Q("input[name=name]").value,
 		pass = this.Q("input[name=pass]").value
 	ajax('POST', '/user/login',
-		{ header:{ Authorization: "Basic "+name+":"+pass }},
-		user => { if(user) location.reload() }
-	)
+		{ header:{ Authorization: "Basic "+name+":"+pass }})
+	.then(user => { if(user) location.reload() })
+	.catch(err => createConfirmPopup(err))
 }
 
 MsaUserLoginBoxPt.postLogout = function(){

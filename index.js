@@ -185,9 +185,9 @@ msaUser.getHtml.use(function(req, res, next) {
 var login = Msa.login = async function(req, name, pass, next){
 	try {
 		const dbUser = await UsersDb.findById(name)
-		if (!dbUser) return next('Incorrect username.')
+		if (!dbUser) return next({ code:401, text:'Incorrect username' })
 		var epass = md5(pass)
-		if (dbUser.epass!=epass) return next('Incorrect password.')
+		if (dbUser.epass!=epass) return next({ code:401, text:'Incorrect password' })
 		var user = req.session.user = {}
 		user.name = dbUser.name
 		user.groups = dbUser.groups

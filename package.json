@@ -1,6 +1,6 @@
 {
   "name": "@mysimpleapp/msa-user",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "MySimpleApp core module managing application users",
   "main": "index.js",
   "scripts": {

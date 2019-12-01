@@ -2,7 +2,7 @@ import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
 
 const popupDeps = `
 	<script type="module" src="/utils/msa-utils-popup.js"></script>`
-const createPopup = importOnCall(popupDeps, "MsaUtils.createPopup")
+const addMessagePopup = importOnCall(popupDeps, "MsaUtils.addMessagePopup")
 
 
 const contentUnlogged = `
@@ -23,9 +23,7 @@ MsaUserLoginBoxPt.Q = Q
 
 const getUser = function() {
 	if(window.MsaUserPrm === undefined)
-		window.MsaUserPrm = new Promise((ok, ko) => {
-			ajax("GET", "/user/user", ok)
-		})
+		window.MsaUserPrm = ajax("GET", "/user/user")
 	return window.MsaUserPrm
 }
 
@@ -76,7 +74,7 @@ MsaUserLoginBoxPt.postLogin = function(){
 	ajax('POST', '/user/login',
 		{ header:{ Authorization: "Basic "+name+":"+pass }})
 	.then(user => { if(user) location.reload() })
-	.catch(err => createPopup(err))
+	.catch(err => addMessagePopup(this, err))
 }
 
 MsaUserLoginBoxPt.postLogout = function(){

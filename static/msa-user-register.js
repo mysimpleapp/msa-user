@@ -47,9 +47,7 @@ MsaUserRegisterPt.connectedCallback = function(){
 
 const getUser = function() {
 	if(window.MsaUserPrm === undefined)
-		window.MsaUserPrm = new Promise((ok, ko) => {
-			ajax("GET", "/user/user", ok)
-		})
+		window.MsaUserPrm = ajax("GET", "/user/user")
 	return window.MsaUserPrm
 }
 

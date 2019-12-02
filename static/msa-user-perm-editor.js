@@ -65,7 +65,7 @@ MsaUserPermEditorPt.syncValue = function(){
 		const tr = (await importHtml(permTrContent, tbody))[0]
 		this.syncPermUnit(tr, val)
 		this.querySelector(".user").addEventListener("click", async () => {
-			const popup = await importAsPopup({ wel:"/user/msa-user-selector.js" })
+			const popup = await importAsPopup(this, { wel:"/user/msa-user-selector.js" })
 			const userSel = popup.content
 			const val = {}
 			val[tr.userType] = tr.userVal

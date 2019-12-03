@@ -10,8 +10,10 @@ const contentUnlogged = `
 `
 
 const contentLogged = `
-		<div><label class="name" style="font-weight: bold;"></label></div>
-		<div><input type="image" class="logout" style="width:18px; height:18px;" src='data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23999%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20class%3D%22path1%22%20d%3D%22M20%204.581v4.249c1.131%200.494%202.172%201.2%203.071%202.099%201.889%201.889%202.929%204.4%202.929%207.071s-1.040%205.182-2.929%207.071c-1.889%201.889-4.4%202.929-7.071%202.929s-5.182-1.040-7.071-2.929c-1.889-1.889-2.929-4.4-2.929-7.071s1.040-5.182%202.929-7.071c0.899-0.899%201.94-1.606%203.071-2.099v-4.249c-5.783%201.721-10%207.077-10%2013.419%200%207.732%206.268%2014%2014%2014s14-6.268%2014-14c0-6.342-4.217-11.698-10-13.419zM14%200h4v16h-4z%22%3E%3C%2Fpath%3E%3C%2Fsvg%3E'></div>
+	<div style="display:flex; flex-direction:row; align-items: center">
+		<label class="name" style="font-weight: bold;"></label>
+		<input type="image" class="logout" style="width:1em; height:1em; padding-left:5px" src='/user/img/logout'>
+	</div>
 `
 
 export class HTMLMsaUserLoginBoxElement extends HTMLElement {}

@@ -1,4 +1,4 @@
-import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
+import { Q, ajax, importOnCall } from '/msa/msa.js'
 
 const popupDeps = `
 	<script type="module" src="/utils/msa-utils-popup.js"></script>`
@@ -78,9 +78,8 @@ MsaUserLoginBoxPt.postLogin = function(){
 }
 
 MsaUserLoginBoxPt.postLogout = function(){
-	ajax('POST', '/user/logout', () => {
-		location.reload()
-	})
+	ajax('POST', '/user/logout')
+	.then(() => location.reload())
 }
 
 // register elem

@@ -1,4 +1,9 @@
-import { Q, ajax, importHtml } from '/msa/msa.js'
+import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
+
+const popupDeps = `
+	<script type="module" src="/utils/msa-utils-popup.js"></script>`
+const addErrorPopup = importOnCall(popupDeps, "MsaUtils.addErrorPopup")
+
 
 // content
 
@@ -96,17 +101,14 @@ MsaUserRegisterPt.postRegister = function(){
 		pass = this.Q("input[name=pass]").value,
 		email = this.Q("input[name=email]").value
 	ajax('POST', '/user/register',
-		{ body: { name:name, pass:pass, email:email }},
-		user => {
-			if(user) location.reload()
-		}
-	)
+		{ body: { name:name, pass:pass, email:email }})
+	.then(user => { if(user) location.reload() })
+	.catch(err => addErrorPopup(this, err))
 }
 
 MsaUserRegisterPt.postLogout = function(){
-	ajax('POST', '/user/logout', () => {
-		location.reload()
-	})
+	ajax('POST', '/user/logout')
+	.then(() => location.reload())
 }
 
 // register elem

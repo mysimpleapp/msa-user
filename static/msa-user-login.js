@@ -1,4 +1,9 @@
-import { Q, ajax, importHtml } from '/msa/msa.js'
+import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
+
+const popupDeps = `
+	<script type="module" src="/utils/msa-utils-popup.js"></script>`
+const addErrorPopup = importOnCall(popupDeps, "MsaUtils.addErrorPopup")
+
 
 // content
 
@@ -108,15 +113,14 @@ MsaUserLoginPt.postLogin = function(){
 	const name = this.Q("input[name=name]").value,
 		pass = this.Q("input[name=pass]").value
 	ajax('POST', '/user/login',
-		{ header:{ Authorization: "Basic "+name+":"+pass }},
-		user => { if(user) location.reload() }
-	)
+		{ header:{ Authorization: "Basic "+name+":"+pass }})
+	.then(user => { if(user) location.reload() })
+	.catch(err => addErrorPopup(this, err))
 }
 
 MsaUserLoginPt.postLogout = function(){
-	ajax('POST', '/user/logout', () => {
-		location.reload()
-	})
+	ajax('POST', '/user/logout')
+	.then(() => location.reload())
 }
 
 MsaUserLoginPt.sync = MsaUserLoginPt.attributeChangedCallback = function(){

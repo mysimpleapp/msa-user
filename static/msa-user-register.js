@@ -1,8 +1,6 @@
 import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
 
-const popupDeps = `
-	<script type="module" src="/utils/msa-utils-popup.js"></script>`
-const addErrorPopup = importOnCall(popupDeps, "MsaUtils.addErrorPopup")
+const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
 
 
 // content

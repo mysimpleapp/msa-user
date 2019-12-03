@@ -1,9 +1,6 @@
 import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
 
-// dynamic imports
-const popupDeps = `
-	<script type="module" src="/utils/msa-utils-popup.js"></script>`
-const importAsPopup = importOnCall(popupDeps, "MsaUtils.importAsPopup")
+const importAsPopup = importOnCall("/utils/msa-utils-popup.js", "importAsPopup")
 
 // content
 

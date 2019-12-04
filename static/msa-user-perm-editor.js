@@ -1,18 +1,17 @@
-import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
+import { Q, importHtml, importOnCall } from '/msa/msa.js'
 
 const importAsPopup = importOnCall("/utils/msa-utils-popup.js", "importAsPopup")
 
-// content
+// template
 
-const content = `
+const template = `
 	<p><table class="value"=>
 		<thead><tr><th>Users</th><th>Permission</th><th></th></tr></thead>
 		<tbody></tbody>
 	</table></p>
-	<p><button class="add">Add</button><button class="save">Save</button></p>
-`
+	<p><button class="add">Add</button><button class="save">Save</button></p>`
 
-const permTrContent = `
+const permTrTemplate = `
 	<tr>
 		<td class="user"></td>
 		<td class="perm"></td>
@@ -20,28 +19,29 @@ const permTrContent = `
 	</tr>`
 
 // style
+
 importHtml(`<style>
 	msa-user-perm-editor button {
 		margin: 1px;
 	}
 </style>`)
 
-
-// element
+// msa-user-perm-editor
 
 export class HTMLMsaUserPermEditorElement extends HTMLElement {}
 const MsaUserPermEditorPt = HTMLMsaUserPermEditorElement.prototype
+customElements.define("msa-user-perm-editor", HTMLMsaUserPermEditorElement)
 
 MsaUserPermEditorPt.Q = Q
 
 MsaUserPermEditorPt.connectedCallback = function(){
-	this.initContent()
+	this.innerHTML = this.getTemplate()
 	this.sync()
 	this.initActions()
 }
 
-MsaUserPermEditorPt.initContent = function(){
-	this.innerHTML = content
+MsaUserPermEditorPt.getTemplate = function(){
+	return template
 }
 
 MsaUserPermEditorPt.initActions = function(){
@@ -59,7 +59,7 @@ MsaUserPermEditorPt.syncValue = function(){
 	if(!value) return
 	if(!isArr(value)) value = [value]
 	value.forEach(async val => {
-		const tr = (await importHtml(permTrContent, tbody))[0]
+		const tr = (await importHtml(permTrTemplate, tbody))[0]
 		this.syncPermUnit(tr, val)
 		this.querySelector(".user").addEventListener("click", async () => {
 			const popup = await importAsPopup(this, { wel:"/user/msa-user-selector.js" })
@@ -98,16 +98,6 @@ MsaUserPermEditorPt.syncPermUnitPerm = function(tr, val){
 	tr.querySelector(".perm").textContent = tr.perm = val
 }
 
-// register elem
-customElements.define("msa-user-perm-editor", HTMLMsaUserPermEditorElement)
-
 // utils
 
 const isArr = Array.isArray
-
-function newEl(parent, tag, content) {
-	const el = document.createElement(tag)
-	if(content) el.textContent = content
-	parent.appendChild(el)
-	return el
-}

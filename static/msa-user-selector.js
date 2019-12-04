@@ -1,8 +1,6 @@
-import { importHtml } from '/msa/msa.js'
+// template
 
-// content
-
-const content = `
+const template = `
 	<p>
 		<select class="type">
 			<option value="all">ALL</option>
@@ -11,79 +9,74 @@ const content = `
 		</select>
 		<input class="value"></input>
 	</p>
-	<p><button class="ok">OK</button></p>
-`
+	<p><button class="ok">OK</button></p>`
 
+// msa-user-selector
 
-// element
+export class HTMLMsaUserSelectorElement extends HTMLElement {
 
-export class HTMLMsaUserSelectorElement extends HTMLElement {}
-const MsaUserSelectorPt = HTMLMsaUserSelectorElement.prototype
-
-MsaUserSelectorPt.connectedCallback = function(){
-	this.initContent()
-	this.syncContent()
-	this.initActions()
-}
-
-MsaUserSelectorPt.setValue = function(val){
-	for(let key in val){
-		this.setTypeValue(val[key])
-		this.setType(key)
+	connectedCallback(){
+		this.innerHTML = this.getTemplate()
+		this.syncContent()
+		this.initActions()
 	}
-	this.syncType()
-	this.syncTypeValue()
-}
 
-MsaUserSelectorPt.initContent = function(){
-	this.innerHTML = content
-}
+	setValue(val){
+		for(let key in val){
+			this.setTypeValue(val[key])
+			this.setType(key)
+		}
+		this.syncType()
+		this.syncTypeValue()
+	}
 
-MsaUserSelectorPt.initActions = function(){
-	this.querySelector("select.type").addEventListener("change", evt =>
-		this.setType(evt.target.value))
-	this.querySelector("input.value").addEventListener("change", evt =>
-		this.setTypeValue(evt.target.value))
-	this.querySelector("button.ok").addEventListener("click", evt =>
-		this.validate())
-}
+	getTemplate(){
+		return template
+	}
 
-MsaUserSelectorPt.syncContent = function(name, oldVal, newVal){
-	this.syncType()
-	this.syncTypeValue()
-}
+	initActions(){
+		this.querySelector("select.type").addEventListener("change", evt =>
+			this.setType(evt.target.value))
+		this.querySelector("input.value").addEventListener("change", evt =>
+			this.setTypeValue(evt.target.value))
+		this.querySelector("button.ok").addEventListener("click", evt =>
+			this.validate())
+	}
 
-MsaUserSelectorPt.setType = function(t){
-	if(t === this.type) return
-	this.type = t
-	this.value = (t == "all") ? true : ""
-	this.syncType()
-	this.syncTypeValue()
-}
-MsaUserSelectorPt.syncType = function(){
-	upd(this.querySelector("select.type"), "value", this.type)
-}
+	syncContent(){
+		this.syncType()
+		this.syncTypeValue()
+	}
 
-MsaUserSelectorPt.setTypeValue = function(val){
-	this.value = val
-	this.syncTypeValue()
-}
-MsaUserSelectorPt.syncTypeValue = function(){
-	const valEl = this.querySelector("input.value")
-	upd(valEl, "value", this.value)
-	valEl.style.display = (this.type==="all") ? "none" : ""
-}
+	setType(t){
+		if(t === this.type) return
+		this.type = t
+		this.value = (t == "all") ? true : ""
+		this.syncType()
+		this.syncTypeValue()
+	}
+	syncType(){
+		upd(this.querySelector("select.type"), "value", this.type)
+	}
 
-MsaUserSelectorPt.validate = function(){
-	const detail = {}
-	detail[this.type] = this.value
-	const evt = new CustomEvent('validate', { 'detail': detail })
-	this.dispatchEvent(evt)
-}
+	setTypeValue(val){
+		this.value = val
+		this.syncTypeValue()
+	}
+	syncTypeValue(){
+		const valEl = this.querySelector("input.value")
+		upd(valEl, "value", this.value)
+		valEl.style.display = (this.type==="all") ? "none" : ""
+	}
 
-// register elem
+	validate(){
+		const detail = {}
+		detail[this.type] = this.value
+		const evt = new CustomEvent('validate', { 'detail': detail })
+		this.dispatchEvent(evt)
+	}
+}
 customElements.define("msa-user-selector", HTMLMsaUserSelectorElement)
-
 
 // utils
 

@@ -2,20 +2,18 @@ import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
 
 const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
 
+// template
 
-// content
-
-const contentUnlogged = `
+const unloggedTemplate = `
 	<h1>Register</h1>
 	<line><input type=text name="name" placeholder="username"></line>
 	<line><input type=password name="pass" placeholder="password"></line>
 	<line><input type=text name="email" placeholder="email"></line>
-	<line><button class="register">Register</button></line>
-`
-const contentLogged = `
+	<line><button class="register">Register</button></line>`
+
+const loggedTemplate = `
 	<line>Vous êtes connecté en tant que <b class="name"></b></line>
-	<line><button class="logout">Déconnexion</button></line>
-`
+	<line><button class="logout">Déconnexion</button></line>`
 
 // style
 
@@ -34,80 +32,85 @@ importHtml(`<style>
 	}
 `)
 
-// MsaUserRegister
+// msa-user-login
 
-export class HTMLMsaUserRegisterElement extends HTMLElement {}
-const MsaUserRegisterPt = HTMLMsaUserRegisterElement.prototype
-
-MsaUserRegisterPt.Q = Q
-
-MsaUserRegisterPt.connectedCallback = function(){
-	this.initUser(() => {
-		this.initContent()
-		this.initActions()
-	})
-}
-
-const getUser = function() {
+function getUser() {
 	if(window.MsaUserPrm === undefined)
 		window.MsaUserPrm = ajax("GET", "/user/user")
 	return window.MsaUserPrm
 }
 
-MsaUserRegisterPt.initUser = function(next){
-	// check if user has been provided in attributes
-	if(this.hasAttribute("logged")) {
-		if(this.getAttribute("logged") === "true")
-			this.user = { name: this.getAttribute("name") }
-		else this.user = null
-		next()
-	} else {
-		// else, get it from server
-		getUser().then(user => {
-			this.user = user
+export class HTMLMsaUserRegisterElement extends HTMLElement {
+
+	connectedCallback(){
+		this.initUser(() => {
+			this.initContent()
+			this.initActions()
+		})
+	}
+
+	initUser(next){
+		// check if user has been provided in attributes
+		if(this.hasAttribute("logged")) {
+			if(this.getAttribute("logged") === "true")
+				this.user = { name: this.getAttribute("name") }
+			else this.user = null
 			next()
-		})
+		} else {
+			// else, get it from server
+			getUser().then(user => {
+				this.user = user
+				next()
+			})
+		}
+	}
+
+	getLoggedTemplate(){
+		return loggedTemplate
+	}
+
+	getUnloggedTemplate(){
+		return unloggedTemplate
+	}
+
+	initContent(){
+		// display content, in function of user
+		if(this.user) this.innerHTML = this.getLoggedTemplate()
+		else this.innerHTML = this.getUnloggedTemplate()
+		if(this.user) this.Q(".name").textContent = this.user.name
+	}
+
+	initActions(){
+		if(this.user) {
+			// logout button
+			this.Q("button.logout").onclick = () => { this.postLogout() }
+		} else {
+			// register inputs
+			this.querySelectorAll("input").forEach(input => {
+				input.onkeydown = evt => {
+					if(evt.key === "Enter")
+						this.postRegister()
+				}
+			})
+			// register button
+			this.Q("button.register").onclick = () => { this.postRegister() }
+		}
+	}
+
+	postRegister(){
+		const name = this.Q("input[name=name]").value,
+			pass = this.Q("input[name=pass]").value,
+			email = this.Q("input[name=email]").value
+		ajax('POST', '/user/register',
+			{ body: { name:name, pass:pass, email:email }})
+		.then(user => { if(user) location.reload() })
+		.catch(err => addErrorPopup(this, err))
+	}
+
+	postLogout(){
+		ajax('POST', '/user/logout')
+		.then(() => location.reload())
 	}
 }
-
-MsaUserRegisterPt.initContent = function(){
-	// display content, in function of user
-	if(this.user) this.innerHTML = contentLogged
-	else this.innerHTML = contentUnlogged
-	if(this.user) this.Q(".name").textContent = this.user.name
-}
-
-MsaUserRegisterPt.initActions = function(){
-	if(this.user) {
-		// logout button
-		this.Q("button.logout").onclick = () => { this.postLogout() }
-	} else {
-		// register inputs
-		this.querySelectorAll("input").forEach(input => {
-			input.onkeydown = evt => {
-				if(evt.key === "Enter")
-					this.postRegister()
-			}
-		})
-		// register button
-		this.Q("button.register").onclick = () => { this.postRegister() }
-	}
-}
-
-MsaUserRegisterPt.postRegister = function(){
-	const name = this.Q("input[name=name]").value,
-		pass = this.Q("input[name=pass]").value,
-		email = this.Q("input[name=email]").value
-	ajax('POST', '/user/register',
-		{ body: { name:name, pass:pass, email:email }})
-	.then(user => { if(user) location.reload() })
-	.catch(err => addErrorPopup(this, err))
-}
-
-MsaUserRegisterPt.postLogout = function(){
-	ajax('POST', '/user/logout')
-	.then(() => location.reload())
-}
-
-// register elem
+HTMLMsaUserRegisterElement.prototype.Q = Q
 customElements.define("msa-user-register", HTMLMsaUserRegisterElement)

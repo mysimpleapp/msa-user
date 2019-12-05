@@ -1,4 +1,4 @@
-import { Q, ajax, importHtml, importOnCall } from '/msa/msa.js'
+import { Q, ajax, importHtml, importOnCall } from '/utils/msa-utils.js'
 
 const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
 

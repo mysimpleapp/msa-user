@@ -1,4 +1,4 @@
-import { Q, importHtml, importOnCall } from '/msa/msa.js'
+import { Q, importHtml, importOnCall } from '/utils/msa-utils.js'
 
 const importAsPopup = importOnCall("/utils/msa-utils-popup.js", "importAsPopup")
 

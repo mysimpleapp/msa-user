@@ -1,4 +1,4 @@
-import { Q, ajax, importHtml } from '/msa/msa.js'
+import { Q, ajax, importHtml } from '/utils/msa-utils.js'
 
 // template
 

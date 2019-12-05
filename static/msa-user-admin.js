@@ -34,7 +34,8 @@ export default class HTMLMsaUserAdminElement extends HTMLElement {
 		this.listUsers()
 	}
 	listUsers() {
-		ajax('GET', '/admin/users/list', users => {
+		ajax('GET', '/admin/users/list')
+		.then(users => {
 			this.users = users
 			this.sync()
 		})

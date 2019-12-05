@@ -1,6 +1,4 @@
-import { Q, ajax, importOnCall } from '/utils/msa-utils.js'
-
-const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
+import { Q, ajax } from '/utils/msa-utils.js'
 
 // template
 
@@ -78,10 +76,11 @@ export class HTMLMsaUserLoginBoxElement extends HTMLElement {
 	postLogin(){
 		const name = this.Q("input[name=name]").value,
 			pass = this.Q("input[name=pass]").value
-		ajax('POST', '/user/login',
-			{ header:{ Authorization: "Basic "+name+":"+pass }})
+		ajax('POST', '/user/login', {
+			header: { Authorization: "Basic "+name+":"+pass },
+			popupError: this
+		})
 		.then(user => { if(user) location.reload() })
-		.catch(err => addErrorPopup(this, err))
 	}
 
 	postLogout(){

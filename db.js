@@ -1,7 +1,8 @@
 // DB model
 const { orm, Orm } = Msa.require("db")
 const UsersDb = orm.define('msa_users', {
-	name: { type: Orm.STRING, primaryKey: true },
+	key: { type: Orm.STRING, primaryKey: true },
+	name: Orm.STRING,
 	epass: Orm.STRING,
 	email: Orm.STRING,
 	groups: { type: Orm.TEXT,

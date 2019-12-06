@@ -184,7 +184,8 @@ msaUser.getHtml.use(function(req, res, next) {
 // login
 var login = Msa.login = async function(req, name, pass, next){
 	try {
-		const dbUser = await UsersDb.findById(name)
+		const key = name
+		const dbUser = await UsersDb.findById(key)
 		if (!dbUser) return next({ code:401, text:'Incorrect username' })
 		var epass = md5(pass)
 		if (dbUser.epass!=epass) return next({ code:401, text:'Incorrect password' })
@@ -212,7 +213,8 @@ var register = msaUser.register = async function(name, pass, arg1, arg2) {
 		if(arg2===undefined) { var next=arg1 }
 		else { var args=arg1, next=arg2 }
 		// check if the user already exists
-		const dbUser = await UsersDb.findById(name)
+		const key = name
+		const dbUser = await UsersDb.findById(key)
 		if(dbUser) return next("User id already exists.")
 		// encrypt pass & transform a little bit the args
 		var email = args && args.email
@@ -236,7 +238,8 @@ msaUser.app.post('/register', userMdw, registerMdw, loginMdw, replyUser)
 // addGroup
 var addGroup = msaUser.addGroup = async function(name, group, next) {
 	try {
-		const dbUser = await UsersDb.findById(name)
+		const key = name
+		const dbUser = await UsersDb.findById(key)
 		if(!dbUser) return next("User does not exist.")
 		// add group, if it does not exist yet
 		var groups = dbUser.groups

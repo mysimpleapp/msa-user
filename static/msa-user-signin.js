@@ -9,18 +9,18 @@ const unloggedTemplate = `
 	<p class="text"></p>
 	<line><input type=text name="name" placeholder="username"></line>
 	<line><input type=password name="pass" placeholder="password"></line>
-	<line><button class="login">Connexion</button></line>
+	<line><button class="signin">Connexion</button></line>
 `
 const loggedTemplate = `
 	<h1 class="title"></h1>
 	<p class="text"></p>
 	<line>Vous êtes connecté en tant que <b class="name"></b></line>
-	<line><button class="logout">Déconnexion</button></line>
+	<line><button class="signout">Déconnexion</button></line>
 `
 // style
 
 importHtml(`<style>
-	msa-user-login {
+	msa-user-signin {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
@@ -28,15 +28,15 @@ importHtml(`<style>
 		text-align: center;
 		padding: 10px;
 	}
-	msa-user-login line {
+	msa-user-signin line {
 		display: block;
 		padding: 3px;
 	}
 `)
 
-// msa-user-login
+// msa-user-signin
 
-export class HTMLMsaUserLoginElement extends HTMLElement {
+export class HTMLMsaUserSigninElement extends HTMLElement {
 
 	connectedCallback() {
 		this.initUser(() => {
@@ -85,32 +85,32 @@ export class HTMLMsaUserLoginElement extends HTMLElement {
 
 	initActions(){
 		if(this.user) {
-			// logout button
-			this.Q("button.logout").onclick = () => { this.postLogout() }
+			// signout button
+			this.Q("button.signout").onclick = () => { this.postSignout() }
 		} else {
-			// login inputs
+			// signin inputs
 			this.querySelectorAll("input").forEach(input => {
 				input.onkeydown = evt => {
 					if(evt.key === "Enter")
-						this.postLogin()
+						this.postSignin()
 				}
 			})
-			// login button
-			this.Q("button.login").onclick = () => { this.postLogin() }
+			// signin button
+			this.Q("button.signin").onclick = () => { this.postSignin() }
 		}
 	}
 
-	postLogin(){
+	postSignin(){
 		const name = this.Q("input[name=name]").value,
 			pass = this.Q("input[name=pass]").value
-		ajax('POST', '/user/login',
+		ajax('POST', '/user/signin',
 			{ header:{ Authorization: "Basic "+name+":"+pass }})
 		.then(user => { if(user) location.reload() })
 		.catch(err => addErrorPopup(this, err))
 	}
 
-	postLogout(){
-		ajax('POST', '/user/logout')
+	postSignout(){
+		ajax('POST', '/user/signout')
 		.then(() => location.reload())
 	}
 
@@ -126,7 +126,7 @@ export class HTMLMsaUserLoginElement extends HTMLElement {
 			this.hasAttribute("unauthorized") ? "Unauthorized !" : null)
 		const defaultText = defArg(
 			this.getAttribute("text"),
-			this.hasAttribute("unauthorized") ? "Please login with a user with valid privileges." : null)
+			this.hasAttribute("unauthorized") ? "Please signin with a user with valid privileges." : null)
 		// determine titles
 		const loggedTitle = defArg(
 			this.getAttribute("logged-title"),
@@ -156,8 +156,8 @@ export class HTMLMsaUserLoginElement extends HTMLElement {
 		}
 	}
 }
-HTMLMsaUserLoginElement.prototype.Q = Q
-customElements.define("msa-user-login", HTMLMsaUserLoginElement)
+HTMLMsaUserSigninElement.prototype.Q = Q
+customElements.define("msa-user-signin", HTMLMsaUserSigninElement)
 
 // utils
 

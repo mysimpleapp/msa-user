@@ -18,12 +18,12 @@ Object.assign(msaUser, require('./param'))
 
 // pages /////////////////////////////////////////////////////////////
 
-msaUser.app.get('/', (req, res) => res.redirect('/user/login') )
+msaUser.app.get('/', (req, res) => res.redirect('/user/signin') )
 
-msaUser.app.get('/login', userMdw, (req, res) => {
+msaUser.app.get('/signin', userMdw, (req, res) => {
 	const user = req.session.user
 	res.sendPage({
-		wel: '/user/msa-user-login.js',
+		wel: '/user/msa-user-signin.js',
 		attrs: {
 			logged: user ? true : false,
 			name: user ? user.name : undefined
@@ -120,7 +120,7 @@ msaUser.checkPermPage = genCheckPermMdw((req, res, next) =>
 const checkAdminMdw = msaUser.checkAdminMdw = msaUser.checkPermMdw(new Perm({ group:'admin' }))
 
 msaUser.unauthHtml = {
-	wel: '/user/msa-user-login.js',
+	wel: '/user/msa-user-signin.js',
 	attrs: {
 		unauthorized: true
 	}
@@ -156,15 +156,15 @@ var replyDone = function(req, res) { res.sendStatus(200) }
 // user
 msaUser.app.get('/user', userMdw, replyUser)
 
-// logout
-var logout = msaUser.logout = function(req) {
+// signout
+var signout = msaUser.signout = function(req) {
 	delete req.session.user
 }
-var logoutMdw = function(req, res, next){
-	logout(req)
+var signoutMdw = function(req, res, next){
+	signout(req)
 	next()
 }
-msaUser.app.post('/logout', userMdw, logoutMdw, replyUser)
+msaUser.app.post('/signout', userMdw, signoutMdw, replyUser)
 
 // getHtml
 msaUser.getHtml = Msa.express.Router()
@@ -181,8 +181,8 @@ msaUser.getHtml.use(function(req, res, next) {
 	})
 })
 
-// login
-var login = Msa.login = async function(req, name, pass, next){
+// signin
+var signin = Msa.signin = async function(req, name, pass, next){
 	try {
 		const key = name
 		const dbUser = await UsersDb.findById(key)
@@ -195,7 +195,7 @@ var login = Msa.login = async function(req, name, pass, next){
 		next()
 	} catch(err){ next(err) }
 }
-var loginMdw = function(req, res, next) {
+var signinMdw = function(req, res, next) {
 	const auth = req.headers.authorization, body = req.body
 	if(auth){
 		var [name, pass] = auth.split(' ')[1].split(':')
@@ -203,9 +203,9 @@ var loginMdw = function(req, res, next) {
 		var { name, pass } = body
 	}
 	if(!name) return next(400) // Bad Request
-	login(req, name, pass, next)
+	signin(req, name, pass, next)
 }
-msaUser.app.post('/login', userMdw, loginMdw, replyUser)
+msaUser.app.post('/signin', userMdw, signinMdw, replyUser)
 
 // register
 var register = msaUser.register = async function(name, pass, arg1, arg2) {
@@ -233,7 +233,7 @@ var registerMdw = function(req, res, next) {
 	var args = req.body
 	register(args.name, args.pass, args, next)
 }
-msaUser.app.post('/register', userMdw, registerMdw, loginMdw, replyUser)
+msaUser.app.post('/register', userMdw, registerMdw, signinMdw, replyUser)
 
 // addGroup
 var addGroup = msaUser.addGroup = async function(name, group, next) {
@@ -289,7 +289,7 @@ require("./admin")
 /*
 var sheetApp = Msa.require("msa-sheet")
 
-sheetApp.registerTemplate("msa-user-login", { wel: compUrl+'/msa-user-login-box.html' }, {
+sheetApp.registerTemplate("msa-user-signin", { wel: compUrl+'/msa-user-signin-box.html' }, {
 	img: "<img src='data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23999%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20class%3D%22path1%22%20d%3D%22M18%2022.082v-1.649c2.203-1.241%204-4.337%204-7.432%200-4.971%200-9-6-9s-6%204.029-6%209c0%203.096%201.797%206.191%204%207.432v1.649c-6.784%200.555-12%203.888-12%207.918h28c0-4.030-5.216-7.364-12-7.918z%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E'>"
 })
 */

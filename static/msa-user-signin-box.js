@@ -5,16 +5,16 @@ import { Q, ajax } from '/utils/msa-utils.js'
 const unloggedTemplate = `
 		<div><input type=text size=10 name="name" placeholder="username"></div>
 		<div><input type=password size=10 name="pass" placeholder="password"></div>
-		<div><button class="login">Login</button></div>
+		<div><button class="signin">Signin</button></div>
 `
 
 const loggedTemplate = `
 	<div style="display:flex; flex-direction:row; align-items: center">
 		<label class="name" style="font-weight: bold;"></label>
-		<input type="image" class="logout" style="width:1em; height:1em; padding-left:5px" src='/user/img/logout'>
+		<input type="image" class="signout" style="width:1em; height:1em; padding-left:5px" src='/user/img/signout'>
 	</div>
 `
-// msa-user-login-box
+// msa-user-signin-box
 
 function getUser() {
 	if(window.MsaUserPrm === undefined)
@@ -22,7 +22,7 @@ function getUser() {
 	return window.MsaUserPrm
 }
 
-export class HTMLMsaUserLoginBoxElement extends HTMLElement {
+export class HTMLMsaUserSigninBoxElement extends HTMLElement {
 
 	connectedCallback(){
 		getUser().then(user => {
@@ -58,38 +58,38 @@ export class HTMLMsaUserLoginBoxElement extends HTMLElement {
 
 	initActions(){
 		if(this.user) {
-			// logout button
-			this.Q(".logout").onclick = () => { this.postLogout() }
+			// signout button
+			this.Q(".signout").onclick = () => { this.postSignout() }
 		} else {
-			// login inputs
+			// signin inputs
 			this.querySelectorAll("input").forEach(input => {
 				input.onkeydown = evt => {
 					if(evt.key === "Enter")
-						this.postLogin()
+						this.postSignin()
 				}
 			})
-			// login button
-			this.Q("button.login").onclick = () => { this.postLogin() }
+			// signin button
+			this.Q("button.signin").onclick = () => { this.postSignin() }
 		}
 	}
 
-	postLogin(){
+	postSignin(){
 		const name = this.Q("input[name=name]").value,
 			pass = this.Q("input[name=pass]").value
-		ajax('POST', '/user/login', {
+		ajax('POST', '/user/signin', {
 			header: { Authorization: "Basic "+name+":"+pass },
 			popupError: this
 		})
 		.then(user => { if(user) location.reload() })
 	}
 
-	postLogout(){
-		ajax('POST', '/user/logout')
+	postSignout(){
+		ajax('POST', '/user/signout')
 		.then(() => location.reload())
 	}
 }
 
-HTMLMsaUserLoginBoxElement.prototype.Q = Q
+HTMLMsaUserSigninBoxElement.prototype.Q = Q
 
-customElements.define("msa-user-login-box", HTMLMsaUserLoginBoxElement)
+customElements.define("msa-user-signin-box", HTMLMsaUserSigninBoxElement)
 

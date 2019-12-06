@@ -13,7 +13,7 @@ const unloggedTemplate = `
 
 const loggedTemplate = `
 	<line>Vous êtes connecté en tant que <b class="name"></b></line>
-	<line><button class="logout">Déconnexion</button></line>`
+	<line><button class="signout">Déconnexion</button></line>`
 
 // style
 
@@ -32,7 +32,7 @@ importHtml(`<style>
 	}
 `)
 
-// msa-user-login
+// msa-user-register
 
 function getUser() {
 	if(window.MsaUserPrm === undefined)
@@ -82,8 +82,8 @@ export class HTMLMsaUserRegisterElement extends HTMLElement {
 
 	initActions(){
 		if(this.user) {
-			// logout button
-			this.Q("button.logout").onclick = () => { this.postLogout() }
+			// signout button
+			this.Q("button.signout").onclick = () => { this.postSignout() }
 		} else {
 			// register inputs
 			this.querySelectorAll("input").forEach(input => {
@@ -107,8 +107,8 @@ export class HTMLMsaUserRegisterElement extends HTMLElement {
 		.catch(err => addErrorPopup(this, err))
 	}
 
-	postLogout(){
-		ajax('POST', '/user/logout')
+	postSignout(){
+		ajax('POST', '/user/signout')
 		.then(() => location.reload())
 	}
 }

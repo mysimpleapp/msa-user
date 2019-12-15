@@ -210,6 +210,10 @@ exp.PermNum = class extends exp.PermBase {
 		return super._solve(expr, user)
 	}
 
+	// labels
+
+	getLabels() {}
+
 	// format
 
 	exprPrettyFormat(expr) {

@@ -1,10 +1,7 @@
 const msaUser = module.exports = new Msa.Module()
 
-// deps
-const { promisify: prm } = require('util')
 const md5 = require('md5')
 
-// Msa app
 const userMdw = require('./mdw')
 msaUser.userMdw = userMdw
 msaUser.mdw = userMdw // TODO: deprecate
@@ -130,6 +127,7 @@ msaUser.unauthHtml = {
 // DB //////////////////////////////////////////////////////
 
 // DB model
+const { Orm } = Msa.require("db")
 const { UsersDb } = require("./db")
 /*const { orm, Orm } = Msa.require("db")
 const UsersDb = orm.define('users', {
@@ -258,6 +256,33 @@ var addGroupMdw = function(req, res, next) {
 }
 msaUser.app.post('/addGroup', userMdw, permAdmin.checkMdw(), addGroupMdw, replyDone)
 
+// search
+
+msaUser.app.get('/search', userMdw, async (req, res, next) => {
+	try{
+		const query = req.query
+		const types = query && query.types
+		const text = query && query.text
+		const results = []
+		if(!types || types.indexOf("user")>=0){
+			const dbReq = { limit:10 }
+			if(text) dbReq.where = {
+				name: {
+					[Orm.Op.like]: text+'%'
+				}
+			}
+			const dbUsers = await UsersDb.findAll(dbReq)
+			dbUsers.forEach(u => results.push({ type:"user", key:u.key, name:u.name }))
+		}
+		if(!types || types.indexOf("group")>=0){
+			for(let group of ["admin", "public"]){
+				if(!text || group.startsWith(text))
+					results.push({ type:"group", key:group, name:group })
+			}
+		}
+		res.json({ results })
+	} catch(err){ next(err) }
+})
 
 // PermParam /////////////////////////////
 

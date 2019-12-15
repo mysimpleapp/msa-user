@@ -1,28 +1,60 @@
-import { Q, importHtml, importOnCall } from '/utils/msa-utils.js'
+import { importHtml, importOnCall, Q, ajax } from '/utils/msa-utils.js'
 
-const importAsPopup = importOnCall("/utils/msa-utils-popup.js", "importAsPopup")
+const addInputPopup = importOnCall("/utils/msa-utils-popup.js", "addInputPopup")
+
+const isArr = Array.isArray
 
 // template
 
 const template = `
-	<p><table class="value"=>
+	<table class="value"=>
 		<thead><tr><th>Users</th><th>Permission</th><th></th></tr></thead>
 		<tbody></tbody>
-	</table></p>
-	<p><button class="add">Add</button><button class="save">Save</button></p>`
+	</table>
+	<div class="actions">
+		<input type="image" class="icon add" src="/utils/img/add">
+	</div>`
 
 const permTrTemplate = `
-	<tr>
+	<tr class="permUnit">
 		<td class="user"></td>
 		<td class="perm"></td>
-		<td><button class="rm">Remove</button></td>
+		<td class="actions"><input type="image" class="icon rm" src="/utils/img/remove"></td>
 	</tr>`
 
 // style
 
 importHtml(`<style>
-	msa-user-perm-editor button {
-		margin: 1px;
+
+	msa-user-perm-editor .actions {
+		display: flex;
+		flex-direction: row;
+		justify-content: end;
+	}
+
+	msa-user-perm-editor .user {
+		cursor: pointer;
+	}
+
+	msa-user-perm-editor input.icon {
+		width: 1em;
+		height:1em;
+		background: white;
+		margin: .5em;
+		padding: .5em;
+		border-radius: .5em;
+		box-shadow: 1pt 1pt 3pt 1pt #aaa;
+	}
+	msa-user-perm-editor input.icon:hover {
+		background: lightgrey;
+	}
+
+	msa-user-perm-editor .actions input.icon {
+		margin-right: .5em;
+	}
+
+	msa-user-perm-editor .permUnit td.actions {
+		padding: 0;
 	}
 </style>`)
 
@@ -32,6 +64,8 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 
 	connectedCallback(){
 		this.Q = Q
+		if(this.hasAttribute("labels"))
+			this.labels = this.getAttribute("labels").split(",")
 		this.innerHTML = this.getTemplate()
 		this.sync()
 		this.initActions()
@@ -41,62 +75,110 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 		return template
 	}
 
-	initActions(){}
+	initActions(){
+		this.Q("input.add").onclick = () => this.addPermUnit()
+	}
 
 	sync(name, oldVal, newVal){
 		this.syncValue()
 	}
 	syncValue(){
-		const tbody = this.Q("table.value tbody")
-		tbody.innerHTML = ""
+		this.Q("table.value tbody").innerHTML = ""
 		const valueStr = this.getAttribute("value")
 		if(!valueStr) return
 		let value = JSON.parse(valueStr)
 		if(!value) return
 		if(!isArr(value)) value = [value]
-		value.forEach(async val => {
-			const tr = (await importHtml(permTrTemplate, tbody))[0]
-			this.syncPermUnit(tr, val)
-			this.querySelector(".user").addEventListener("click", async () => {
-				const popup = await importAsPopup(this, { wel:"/user/msa-user-selector.js" })
-				const userSel = popup.content
-				const val = {}
-				val[tr.userType] = tr.userVal
-				userSel.setValue(val)
-				userSel.addEventListener("validate", evt =>
-					this.syncPermUnitUser(tr, evt.detail))
-			})
-			this.querySelector("button.rm").onclick = () => tr.remove()
-		})
+		value.forEach(val => this.addPermUnit(val))
 	}
 
-	syncPermUnit(tr, val){
-		this.syncPermUnitUser(tr, val)
-		const perm = (typeof val === "object") ? val.val : val
-		this.syncPermUnitPerm(tr, val)
+	async addPermUnit(val){
+		const tbody = this.Q("table.value tbody")
+		const tr = (await importHtml(permTrTemplate, tbody))[0]
+		this.setPermUnitVal(tr, val)
+		this.initPermUnitActions(tr)
 	}
 
-	syncPermUnitUser(tr, val){
-		let userType, userVal
-		if(typeof val === "object") {
-			if(val.name) { userType="name"; userVal = val.name }
-			else if(val.group) { userType="group"; userVal=val.group }
-			else userType="all"
-		} else {
-			userType = "all"
+	setPermUnitVal(tr, val){
+		this.setPermUnitUserVal(tr, val)
+		this.setPermUnitPermVal(tr, val)
+	}
+
+	setPermUnitUserVal(tr, val){
+		let userVal = tr.userVal = {}
+		if(typeof val === "object"){
+			if(val.name){
+				userVal.type = "name"
+				userVal.key = val.name
+				userVal.name = val.name
+			} else if(val.group){
+				userVal.type = "group"
+				userVal.key = val.group
+				userVal.name = val.group
+			}
 		}
-		if(userType == "all") userVal = "ALL"
-		tr.userType = userType
-		tr.querySelector(".user").textContent = tr.userVal = userVal
+		if(!userVal.key){
+			userVal.type = "group"
+			userVal.key = "public"
+			userVal.name = "ALL"
+		}
+		this.syncPermUnitUser(tr)
 	}
 
-	syncPermUnitPerm(tr, val){
-		tr.querySelector(".perm").textContent = tr.perm = val
+	syncPermUnitUser(tr){
+		tr.querySelector(".user").textContent = tr.userVal.name
+	}
+
+	setPermUnitPermVal(tr, val){
+		if(!val) val = 0
+		tr.perm = val
+		const prettyVal = this.labels ? this.labels[val] : val
+		tr.querySelector(".perm").textContent = prettyVal
+	}
+
+	initPermUnitActions(tr){
+
+		tr.querySelector(".user").addEventListener("click", async () => {
+			addInputPopup(this, { wel:"/user/msa-user-selector.js" })
+			.then(val => {
+				tr.userVal = val
+				this.syncPermUnitUser(tr)
+			})
+		})
+
+		tr.querySelector("input.rm").onclick = () => tr.remove()
+	}
+
+	getValue(){
+		const res = { value:[] }
+		const tbody = this.Q("table.value tbody")
+		tbody.querySelectorAll("tr").forEach(tr =>
+			res.value.push(this.getPermUnitValue(tr)))
+		res.prettyValue = this.formatPerm(res.value)
+		return res
+	}
+
+	getPermUnitValue(tr){
+		const userType = tr.userType
+		if(userType=="name") value = { name: tr.userVal }
+		else if(userType=="group") value = { group: tr.userVal }
+		else return tr.userVal
+	}
+
+	formatPerm(expr){
+		if(isArr(expr))
+			return expr.map(e => this.formatPerm(e)).join("; ")
+		if(typeof expr === "object") {
+			if(expr.or) return "( " + expr.or.map(or => this.formatPerm(or)).join(" OR ") + " )"
+			if(expr.and) return "( " + expr.and.map(and => this.formatPerm(and)).join(" AND ") + " )"
+			if(expr.name) return "( name: " + expr.name + " )"
+			if(expr.group) return "( group: " + expr.group + " )"
+		}
+		if(this.labels && typeof expr === "number") {
+			return this.labels[expr]
+		}
+		return expr ? expr : ""
 	}
 }
 
 customElements.define("msa-user-perm-editor", HTMLMsaUserPermEditorElement)
-
-// utils
-
-const isArr = Array.isArray

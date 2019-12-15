@@ -26,17 +26,17 @@ const permTrTemplate = `
 
 importHtml(`<style>
 
-	msa-user-perm-editor .actions {
+	.msa-user-perm-editor .actions {
 		display: flex;
 		flex-direction: row;
 		justify-content: end;
 	}
 
-	msa-user-perm-editor .user {
+	.msa-user-perm-editor .user {
 		cursor: pointer;
 	}
 
-	msa-user-perm-editor input.icon {
+	.msa-user-perm-editor input.icon {
 		width: 1em;
 		height:1em;
 		background: white;
@@ -45,15 +45,15 @@ importHtml(`<style>
 		border-radius: .5em;
 		box-shadow: 1pt 1pt 3pt 1pt #aaa;
 	}
-	msa-user-perm-editor input.icon:hover {
+	.msa-user-perm-editor input.icon:hover {
 		background: lightgrey;
 	}
 
-	msa-user-perm-editor .actions input.icon {
+	.msa-user-perm-editor .actions input.icon {
 		margin-right: .5em;
 	}
 
-	msa-user-perm-editor .permUnit td.actions {
+	.msa-user-perm-editor .permUnit td.actions {
 		padding: 0;
 	}
 </style>`)
@@ -64,9 +64,8 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 
 	connectedCallback(){
 		this.Q = Q
-		if(this.hasAttribute("labels"))
-			this.labels = this.getAttribute("labels").split(",")
 		this.innerHTML = this.getTemplate()
+		this.classList.add("msa-user-perm-editor")
 		this.sync()
 		this.initActions()
 	}
@@ -132,8 +131,11 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 	setPermUnitPermVal(tr, val){
 		if(!val) val = 0
 		tr.perm = val
-		const prettyVal = this.labels ? this.labels[val] : val
-		tr.querySelector(".perm").textContent = prettyVal
+		this.syncPermUnitPerm(tr)
+	}
+	
+	syncPermUnitPerm(tr){
+		tr.querySelector(".perm").textContent = tr.perm
 	}
 
 	initPermUnitActions(tr){
@@ -169,16 +171,38 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 		if(isArr(expr))
 			return expr.map(e => this.formatPerm(e)).join("; ")
 		if(typeof expr === "object") {
-			if(expr.or) return "( " + expr.or.map(or => this.formatPerm(or)).join(" OR ") + " )"
-			if(expr.and) return "( " + expr.and.map(and => this.formatPerm(and)).join(" AND ") + " )"
 			if(expr.name) return "( name: " + expr.name + " )"
 			if(expr.group) return "( group: " + expr.group + " )"
-		}
-		if(this.labels && typeof expr === "number") {
-			return this.labels[expr]
 		}
 		return expr ? expr : ""
 	}
 }
 
 customElements.define("msa-user-perm-editor", HTMLMsaUserPermEditorElement)
+
+
+export class HTMLMsaUserPermNumEditorElement extends HTMLMsaUserPermEditorElement {
+
+	connectedCallback(){
+		if(this.hasAttribute("labels"))
+			this.labels = this.getAttribute("labels").split(",")
+		super.connectedCallback()
+	}
+	syncPermUnitPerm(tr){
+		const val = tr.perm
+		const prettyVal = this.labels ? this.labels[val] : val
+		tr.querySelector(".perm").textContent = prettyVal
+	}
+	formatPerm(expr){
+		if(!isArr && typeof expr === "object") {
+			if(expr.or) return "( " + expr.or.map(or => this.formatPerm(or)).join(" OR ") + " )"
+			if(expr.and) return "( " + expr.and.map(and => this.formatPerm(and)).join(" AND ") + " )"
+		}
+		if(this.labels && typeof expr === "number") {
+			return this.labels[expr]
+		}
+		return super.formatPerm(expr)
+	}
+}
+
+customElements.define("msa-user-perm-num-editor", HTMLMsaUserPermNumEditorElement)

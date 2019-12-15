@@ -1,6 +1,7 @@
 import { importHtml, importOnCall, Q, ajax } from '/utils/msa-utils.js'
 
 const addInputPopup = importOnCall("/utils/msa-utils-popup.js", "addInputPopup")
+const makeSuggestions = importOnCall("/utils/msa-utils-suggest.js", "makeSuggestions")
 
 const isArr = Array.isArray
 
@@ -18,7 +19,7 @@ const template = `
 const permTrTemplate = `
 	<tr class="permUnit">
 		<td class="user"></td>
-		<td class="perm"></td>
+		<td class="perm" tabindex=0></td>
 		<td class="actions"><input type="image" class="icon rm" src="/utils/img/remove"></td>
 	</tr>`
 
@@ -32,7 +33,8 @@ importHtml(`<style>
 		justify-content: end;
 	}
 
-	.msa-user-perm-editor .user {
+	.msa-user-perm-editor td.user:hover, .msa-user-perm-editor td.perm:hover {
+		background: lightgrey;
 		cursor: pointer;
 	}
 
@@ -148,7 +150,13 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 			})
 		})
 
+		this.initPermUnitPermActions(tr.querySelector(".perm"))
+
 		tr.querySelector("input.rm").onclick = () => tr.remove()
+	}
+
+	initPermUnitPermActions(permEl){
+		// TODO
 	}
 
 	getValue(){
@@ -187,6 +195,12 @@ export class HTMLMsaUserPermNumEditorElement extends HTMLMsaUserPermEditorElemen
 		if(this.hasAttribute("labels"))
 			this.labels = this.getAttribute("labels").split(",")
 		super.connectedCallback()
+	}
+	initPermUnitPermActions(permEl){
+		makeSuggestions(permEl, async el => this.labels, {
+			waitTime: 0,
+			fillTarget: (el, suggest) => el.textContent = suggest
+		})
 	}
 	syncPermUnitPerm(tr){
 		const val = tr.perm

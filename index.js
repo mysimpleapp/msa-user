@@ -182,8 +182,8 @@ msaUser.getHtml.use(function(req, res, next) {
 // signin
 var signin = Msa.signin = async function(req, name, pass, next){
 	try {
-		const key = name
-		const dbUser = await UsersDb.findById(key)
+		const id = name
+		const dbUser = await UsersDb.findById(id)
 		if (!dbUser) return next({ code:401, text:'Incorrect username' })
 		var epass = md5(pass)
 		if (dbUser.epass!=epass) return next({ code:401, text:'Incorrect password' })
@@ -211,8 +211,8 @@ var register = msaUser.register = async function(name, pass, arg1, arg2) {
 		if(arg2===undefined) { var next=arg1 }
 		else { var args=arg1, next=arg2 }
 		// check if the user already exists
-		const key = name
-		const dbUser = await UsersDb.findById(key)
+		const id = name
+		const dbUser = await UsersDb.findById(id)
 		if(dbUser) return next("User id already exists.")
 		// encrypt pass & transform a little bit the args
 		var email = args && args.email
@@ -236,8 +236,8 @@ msaUser.app.post('/register', userMdw, registerMdw, signinMdw, replyUser)
 // addGroup
 var addGroup = msaUser.addGroup = async function(name, group, next) {
 	try {
-		const key = name
-		const dbUser = await UsersDb.findById(key)
+		const id = name
+		const dbUser = await UsersDb.findById(id)
 		if(!dbUser) return next("User does not exist.")
 		// add group, if it does not exist yet
 		var groups = dbUser.groups
@@ -272,12 +272,12 @@ msaUser.app.get('/search', userMdw, async (req, res, next) => {
 				}
 			}
 			const dbUsers = await UsersDb.findAll(dbReq)
-			dbUsers.forEach(u => results.push({ type:"user", key:u.key, name:u.name }))
+			dbUsers.forEach(u => results.push({ type:"user", id:u.id, name:u.name }))
 		}
 		if(!types || types.indexOf("group")>=0){
 			for(let group of ["admin", "public"]){
 				if(!text || group.startsWith(text))
-					results.push({ type:"group", key:group, name:group })
+					results.push({ type:"group", id:group, name:group })
 			}
 		}
 		res.json({ results })

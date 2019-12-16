@@ -110,17 +110,17 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 		if(typeof val === "object"){
 			if(val.name){
 				userVal.type = "name"
-				userVal.key = val.name
+				userVal.id = val.name
 				userVal.name = val.name
 			} else if(val.group){
 				userVal.type = "group"
-				userVal.key = val.group
+				userVal.id = val.group
 				userVal.name = val.group
 			}
 		}
-		if(!userVal.key){
+		if(!userVal.id){
 			userVal.type = "group"
-			userVal.key = "public"
+			userVal.id = "public"
 			userVal.name = "ALL"
 		}
 		this.syncPermUnitUser(tr)

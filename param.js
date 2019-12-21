@@ -1,6 +1,6 @@
 const exp = module.exports = {}
 
-const { PermBase, Perm, PermNum } = require("./perm")
+const { Perm, PermNum } = require("./perm")
 const { Param, ParamDef } = Msa.require("params")
 
 // DEPRECATED ?
@@ -13,7 +13,7 @@ exp.ParamPerm = class extends Param {
 	}
 }
 
-PermBase.genPermParamDef = function() {
+Perm.genPermParamDef = function() {
 	return class extends ParamDef {
 		format(val){
 			return val.expr
@@ -22,7 +22,7 @@ PermBase.genPermParamDef = function() {
 			return val.prettyFormat()
 		}
 		parse(val){
-			return new this(val)
+			return new this.constructor(val)
 		}
 		getEditor(){
 			return { wel: "/user/msa-user-perm-editor.js" }
@@ -30,7 +30,7 @@ PermBase.genPermParamDef = function() {
 	}
 }
 
-PermBase.newPermParamDef = function(defVal, kwargs) {
+Perm.newPermParamDef = function(defVal, kwargs) {
 	const paramDef = this.genPermParamDef()
 	return new paramDef(Object.assign({
 		defVal: new this(defVal)
@@ -38,7 +38,7 @@ PermBase.newPermParamDef = function(defVal, kwargs) {
 }
 
 PermNum.genPermParamDef = function() {
-	const paramDefCls = PermBase.genPermParamDef()
+	const paramDefCls = Perm.genPermParamDef()
 	const labels = this.prototype.getLabels()
 	paramDefCls.prototype.getEditor = function(){
 		const editor = { wel: "/user/msa-user-perm-editor.js", tag: "msa-user-perm-num-editor" }

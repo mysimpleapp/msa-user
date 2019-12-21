@@ -93,96 +93,84 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 		value.forEach(val => this.addPermUnit(val))
 	}
 
-	async addPermUnit(val){
+	async addPermUnit(expr){
 		const tbody = this.Q("table.value tbody")
 		const tr = (await importHtml(permTrTemplate, tbody))[0]
-		this.setPermUnitVal(tr, val)
+		this.setPermUnitExpr(tr, expr)
 		this.initPermUnitActions(tr)
 	}
 
-	setPermUnitVal(tr, val){
-		this.setPermUnitUserVal(tr, val)
-		this.setPermUnitPermVal(tr, val)
+	getDefaultPermUnitExpr(){
+		return { group:"all", value:false }
 	}
 
-	setPermUnitUserVal(tr, val){
-		let userVal = tr.userVal = {}
-		if(typeof val === "object"){
-			if(val.name){
-				userVal.type = "name"
-				userVal.id = val.name
-				userVal.name = val.name
-			} else if(val.group){
-				userVal.type = "group"
-				userVal.id = val.group
-				userVal.name = val.group
-			}
-		}
-		if(!userVal.id){
-			userVal.type = "group"
-			userVal.id = "public"
-			userVal.name = "ALL"
-		}
+	setPermUnitExpr(tr, expr){
+		if(!expr) expr = this.getDefaultPermUnitExpr()
+		this.setPermUnitUser(tr, expr)
+		this.setPermUnitValue(tr, expr.value)
+	}
+
+	setPermUnitUser(tr, expr){
+		if(!tr.expr) tr.expr = {}
+		tr.expr.user = expr.user
+		tr.expr.group = expr.group
 		this.syncPermUnitUser(tr)
 	}
-
 	syncPermUnitUser(tr){
-		tr.querySelector(".user").textContent = tr.userVal.name
+		tr.querySelector(".user").textContent = tr.expr.user || tr.expr.group
 	}
 
-	setPermUnitPermVal(tr, val){
-		if(!val) val = 0
-		tr.perm = val
-		this.syncPermUnitPerm(tr)
+	setPermUnitValue(tr, val){
+		if(!tr.expr) tr.expr = {}
+		tr.expr.value = val
+		this.syncPermUnitValue(tr)
 	}
-	
-	syncPermUnitPerm(tr){
-		tr.querySelector(".perm").textContent = tr.perm
+	syncPermUnitValue(tr){
+		tr.querySelector(".perm").textContent = tr.expr.value
 	}
 
 	initPermUnitActions(tr){
 
 		tr.querySelector(".user").addEventListener("click", async () => {
 			addInputPopup(this, { wel:"/user/msa-user-selector.js" })
-			.then(val => {
-				tr.userVal = val
-				this.syncPermUnitUser(tr)
-			})
+			.then(val => this.setPermUnitUser(tr, val))
 		})
 
-		this.initPermUnitPermActions(tr.querySelector(".perm"))
+		this.initPermUnitPermActions(tr, tr.querySelector(".perm"))
 
 		tr.querySelector("input.rm").onclick = () => tr.remove()
 	}
 
-	initPermUnitPermActions(permEl){
+	initPermUnitPermActions(tr, permEl){
 		// TODO
 	}
 
 	getValue(){
-		const res = { value:[] }
-		const tbody = this.Q("table.value tbody")
-		tbody.querySelectorAll("tr").forEach(tr =>
-			res.value.push(this.getPermUnitValue(tr)))
-		res.prettyValue = this.formatPerm(res.value)
-		return res
+		const expr = []
+		this.querySelectorAll("table.value tbody tr").forEach(tr =>
+			expr.push(tr.expr))
+		return expr
 	}
 
-	getPermUnitValue(tr){
-		const userType = tr.userType
-		if(userType=="name") value = { name: tr.userVal }
-		else if(userType=="group") value = { group: tr.userVal }
-		else return tr.userVal
+	getParamValues(){
+		const expr = this.getValue()
+		return {
+			value: JSON.stringify(expr),
+			prettyValue: this.formatPerm(expr)
+		}
 	}
 
 	formatPerm(expr){
 		if(isArr(expr))
 			return expr.map(e => this.formatPerm(e)).join("; ")
 		if(typeof expr === "object") {
-			if(expr.name) return "( name: " + expr.name + " )"
-			if(expr.group) return "( group: " + expr.group + " )"
+			if(expr.user) return `${expr.user}: ${this.formatPermValue(expr.value)}`
+			if(expr.group) return `${expr.group}: ${this.formatPermValue(expr.value)}`
 		}
 		return expr ? expr : ""
+	}
+	formatPermValue(val){
+		return val
 	}
 }
 
@@ -196,15 +184,19 @@ export class HTMLMsaUserPermNumEditorElement extends HTMLMsaUserPermEditorElemen
 			this.labels = this.getAttribute("labels").split(",")
 		super.connectedCallback()
 	}
-	initPermUnitPermActions(permEl){
+	getDefaultPermUnitExpr(){
+		return { group:"all", value:0 }
+	}
+	initPermUnitPermActions(tr, permEl){
 		makeSuggestions(permEl, async el => this.labels, {
 			waitTime: 0,
-			fillTarget: (el, suggest) => el.textContent = suggest
+			fillTarget: (el, suggest) =>
+				this.setPermUnitValue(tr, this.labels.indexOf(suggest))
 		})
 	}
-	syncPermUnitPerm(tr){
-		const val = tr.perm
-		const prettyVal = this.labels ? this.labels[val] : val
+	syncPermUnitValue(tr){
+		const val = tr.expr.value, labels = this.labels
+		const prettyVal = labels ? labels[val] : val
 		tr.querySelector(".perm").textContent = prettyVal
 	}
 	formatPerm(expr){
@@ -216,6 +208,11 @@ export class HTMLMsaUserPermNumEditorElement extends HTMLMsaUserPermEditorElemen
 			return this.labels[expr]
 		}
 		return super.formatPerm(expr)
+	}
+	formatPermValue(val){
+		if(this.labels)
+			return this.labels[val]
+		return val
 	}
 }
 

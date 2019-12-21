@@ -62,7 +62,7 @@ export class HTMLMsaUserSelectorElement extends HTMLElement {
 //		this.syncContent()
 		this.initActions()
 	}
-
+/*
 	setValue(val){
 		for(let key in val){
 			this.setTypeValue(val[key])
@@ -71,7 +71,7 @@ export class HTMLMsaUserSelectorElement extends HTMLElement {
 		this.syncType()
 		this.syncTypeValue()
 	}
-
+*/
 	getTemplate(){
 		return template
 	}
@@ -107,16 +107,22 @@ export class HTMLMsaUserSelectorElement extends HTMLElement {
 			},
 			fillTarget: (el, suggest) => {
 				el.value = suggest.name
-				this.value = suggest
+				const expr = {}
+				if(suggest.type === "user")
+					expr.user = suggest.name
+				if(suggest.type === "group")
+					expr.group = suggest.name
+				this.value = expr
 			}
 		})
 	}
-
+/*
 	syncContent(){
 		this.syncType()
 		this.syncTypeValue()
 	}
-
+*/
+/*
 	setType(t){
 		if(t === this.type) return
 		this.type = t
@@ -137,14 +143,15 @@ export class HTMLMsaUserSelectorElement extends HTMLElement {
 		upd(valEl, "value", this.value)
 		valEl.style.display = (this.type==="all") ? "none" : ""
 	}
-
+*/
+/*
 	validate(){
 		const detail = {}
 		detail[this.type] = this.value
 		const evt = new CustomEvent('validate', { 'detail': detail })
 		this.dispatchEvent(evt)
 	}
-
+*/
 	focus(){
 		this.Q("input.value").focus()
 	}

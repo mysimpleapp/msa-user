@@ -38,111 +38,12 @@ msaUser.app.get('/register', userMdw, (req, res) => {
 	})
 })
 
-// checkUser ///////////////////////////////////////////////////////
-
-/*
-var checkUser = msaUser.checkUser = function(user, expr, next) {
-	if(_checkUser(user, expr)) {
-		return true
-	} else {
-		next && next(user ? 403 : 401) // Forbidden : Unauthorized  // TODO: deprecate it
-		return false
-	}
-}
-var _checkUser = function(user, expr) {
-// return true // TMP
-	const type = typeof expr
-	if(type==='function') return expr(user)
-	if(type==='boolean') return expr
-	if(type==='object') return _checkUserObj(user, expr)
-	// nothing matched
-	return false
-}
-var _checkUserObj = function(user, expr) {
-	// TODO: arrange this code to make it mongo query compliant as most as possible
-	if(!user) {
-		// not logged
-		if(expr===false) return true
-	} else {
-		//logged
-		if(expr===true) return true
-		// name
-		var name = expr.name
-		if(name) return user.name==name
-		// group
-		var group = expr.group, userGroups = user.groups
-		if(group) return (userGroups && userGroups.indexOf(group)!=-1)
-		// not
-		var not = expr.not
-		if(not) return (!_checkUserObj(user, not))
-		// and
-		var and = expr.and
-		if(and) {
-			for(var i=0, len=and.length; i<len; ++i)
-				if(!_checkUserObj(user, and[i])) return false
-			return true
-		}
-		// or
-		var or = expr.or
-		if(or) {
-			for(var i=0, len=or.length; i<len; ++i)
-				if(_checkUserObj(user, or[i])) return true
-			return false
-		}
-	}
-}
-*/
-/*
-const genCheckPermMdw = ko => {
-	return function(perm, val=true) {
-		const permFun = (typeof perm === "function") ? perm : () => perm
-		const mdw = Msa.express.Router()
-		mdw.use(userMdw)
-		mdw.use((req, res, next) => {
-			const perm = permFun(req, res, next)
-			if(!perm.checkVal(req.session.user, val))
-				ko(req, res, next)
-			else next()
-		})
-		return mdw
-	}
-}
-
-msaUser.checkPermMdw = genCheckPermMdw((req, res, next) => 
-	next( req.session.user ? 403 : 401 ))
-
-msaUser.checkPermPage = genCheckPermMdw((req, res, next) =>
-	res.sendPage(msaUser.unauthHtml))
-
-const checkAdminMdw = msaUser.checkAdminMdw = msaUser.checkPermMdw(new Perm({ group:'admin' }))
-
-msaUser.unauthHtml = {
-	wel: '/user/msa-user-signin.js',
-	attrs: {
-		unauthorized: true
-	}
-}
-*/
 
 // DB //////////////////////////////////////////////////////
 
 // DB model
 const { Orm } = Msa.require("db")
 const { UsersDb } = require("./db")
-/*const { orm, Orm } = Msa.require("db")
-const UsersDb = orm.define('users', {
-	name: { type: Orm.STRING, primaryKey: true },
-	epass: Orm.STRING,
-	email: Orm.STRING,
-	groups: { type: Orm.TEXT,
-		get() { const val = this.getDataValue('groups'); return val ? val.split(','): val },
-		set(val) { if(val) val = val.join(','); this.setDataValue('groups', val) }
-	}
-})
-
-// create table in DB
-UsersDb.sync()
-*/
 
 
 // entry ////////////////////////////////////////////////////////////////

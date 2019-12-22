@@ -18,11 +18,11 @@ Perm.genPermParamDef = function() {
 		format(val){
 			return val.expr
 		}
-		prettySerialize(val){
-			return val.prettyFormat()
-		}
 		parse(val){
 			return new this.constructor(val)
+		}
+		getViewer(){
+			return { wel: "/user/msa-user-perm-viewer.js" }
 		}
 		getEditor(){
 			return { wel: "/user/msa-user-perm-editor.js" }
@@ -40,14 +40,24 @@ Perm.newPermParamDef = function(defVal, kwargs) {
 PermNum.genPermParamDef = function() {
 	const paramDefCls = Perm.genPermParamDef()
 	const labels = this.prototype.getLabels()
-	paramDefCls.prototype.getEditor = function(){
-		const editor = { wel: "/user/msa-user-perm-editor.js", tag: "msa-user-perm-num-editor" }
-		if(labels){
-			editor.attrs = editor.attrs || {}
-			editor.attrs.labels = labels.map(l => l.name)
+	const labelsAttr = labels ? { labels:labels.map(l => l.name) } : null
+	
+	paramDefCls.prototype.getViewer = function(){
+		return {
+			wel: "/user/msa-user-perm-viewer.js",
+			tag: "msa-user-perm-num-viewer",
+			attrs: labelsAttr
 		}
-		return editor
 	}
+	
+	paramDefCls.prototype.getEditor = function(){
+		return {
+			wel: "/user/msa-user-perm-editor.js",
+			tag: "msa-user-perm-num-editor",
+			attrs: labelsAttr
+		}
+	}
+	
 	return paramDefCls
 }
 

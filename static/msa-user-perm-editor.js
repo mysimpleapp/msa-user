@@ -80,17 +80,20 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 		this.Q("input.add").onclick = () => this.addPermUnit()
 	}
 
+	setValue(val){
+		this.expr = val
+		this.syncValue()
+	}
+
 	sync(name, oldVal, newVal){
 		this.syncValue()
 	}
 	syncValue(){
 		this.Q("table.value tbody").innerHTML = ""
-		const valueStr = this.getAttribute("value")
-		if(!valueStr) return
-		let value = JSON.parse(valueStr)
-		if(!value) return
-		if(!isArr(value)) value = [value]
-		value.forEach(val => this.addPermUnit(val))
+		let expr = this.expr
+		if(!expr) return
+		if(!isArr(expr)) expr = [expr]
+		expr.forEach(val => this.addPermUnit(val))
 	}
 
 	async addPermUnit(expr){
@@ -150,27 +153,6 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 		this.querySelectorAll("table.value tbody tr").forEach(tr =>
 			expr.push(tr.expr))
 		return expr
-	}
-
-	getParamValues(){
-		const expr = this.getValue()
-		return {
-			value: JSON.stringify(expr),
-			prettyValue: this.formatPerm(expr)
-		}
-	}
-
-	formatPerm(expr){
-		if(isArr(expr))
-			return expr.map(e => this.formatPerm(e)).join("; ")
-		if(typeof expr === "object") {
-			if(expr.user) return `${expr.user}: ${this.formatPermValue(expr.value)}`
-			if(expr.group) return `${expr.group}: ${this.formatPermValue(expr.value)}`
-		}
-		return expr ? expr : ""
-	}
-	formatPermValue(val){
-		return val
 	}
 }
 

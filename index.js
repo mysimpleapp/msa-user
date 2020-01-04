@@ -176,7 +176,7 @@ msaUser.app.get('/search', userMdw, async (req, res, next) => {
 			dbUsers.forEach(u => results.push({ type:"user", id:u.id, name:u.name }))
 		}
 		if(!types || types.indexOf("group")>=0){
-			for(let group of ["admin", "public"]){
+			for(let group of ["admin", "all", "signed"]){
 				if(!text || group.startsWith(text))
 					results.push({ type:"group", id:group, name:group })
 			}

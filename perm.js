@@ -20,23 +20,36 @@ exp.Perm = class {
 		Object.assign(this, kwargs)
 	}
 
+	getExpr(){
+		const res = this.expr
+		if(res !== undefined) return res
+		return this.getDefaultExpr()
+	}
+
+	getDefaultExpr() {}
+
 	getDefaultValue() {
+		return false
+	}
+
+	getDefaultExpectedValue() {
 		return true
 	}
 
 	check(user, expVal, prevVal) {
-		return this.checkExpr(this.expr, user, expVal, prevVal)
+		return this.checkExpr(this.getExpr(), user, expVal, prevVal)
 	}
 
 	checkExpr(expr, user, expVal, prevVal) {
 		if(isAdmin(user)) return true
-		if(expVal === undefined) expVal = this.getDefaultValue()
+		if(expVal === undefined) expVal = this.getDefaultExpectedValue()
 		const val = this.solveExpr(expr, user, prevVal)
-		return this._checkValue(expVal, val)
+		if(val === undefined) return this.getDefaultValue()
+		else return this._checkValue(expVal, val)
 	}
 
 	solve(user, prevVal) {
-		return this.solveExpr(this.expr, user, prevVal)
+		return this.solveExpr(this.getExpr(), user, prevVal)
 	}
 
 	solveExpr(expr, user, prevVal) {
@@ -54,23 +67,25 @@ exp.Perm = class {
 	}
 
 	_checkValue(expVal, val) {
-		return (val !== undefined) ? (val === expVal) : false
+		return val === expVal
 	}
 
 	_solve(expr, user) {
-		// user
-		const userId = expr.user
-		if(userId && user && user.id==userId)
-			return expr.value
-		// group
-		const groupId = expr.group
-		if(groupId === "all")
-			return expr.value
-		if(groupId === "signed" && user)
-			return expr.value
-		const userGroups = user && user.groups
-		if(groupId && userGroups && userGroups.indexOf(groupId)!=-1)
-			return expr.value
+		if(isObj(expr)) {
+			// user
+			const userId = expr.user
+			if(userId && user && user.id==userId)
+				return expr.value
+			// group
+			const groupId = expr.group
+			if(groupId === "all")
+				return expr.value
+			if(groupId === "signed" && user)
+				return expr.value
+			const userGroups = user && user.groups
+			if(groupId && userGroups && userGroups.indexOf(groupId)!=-1)
+				return expr.value
+		}
 	}
 
 	// MDWS //////////////////////////////
@@ -159,6 +174,10 @@ exp.permPublic = new exp.Perm({ group:"all", value:true })
 exp.PermNum = class extends exp.Perm {
 
 	getDefaultValue() {
+		return 0
+	}
+
+	getDefaultExpectedValue() {
 		return this.getMaxValue()
 	}
 
@@ -168,7 +187,7 @@ exp.PermNum = class extends exp.Perm {
 	}
 
 	_checkValue(expVal, val) {
-		return (val !== undefined) ? (val >= expVal) : false
+		return val >= expVal
 	}
 
 	// labels
@@ -193,3 +212,7 @@ exp.permNumPublic = new exp.PermNum({ group:"all", value:Number.MAX_VALUE })
 // utils
 
 const isArr = Array.isArray
+
+function isObj(o){
+	return (typeof o === 'object') && (o !== null)
+}

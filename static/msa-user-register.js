@@ -4,14 +4,14 @@ const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
 
 // template
 
-const unloggedTemplate = `
+const unsignedTemplate = `
 	<h1>Register</h1>
 	<line><input type=text name="name" placeholder="username"></line>
 	<line><input type=password name="pass" placeholder="password"></line>
 	<line><input type=text name="email" placeholder="email"></line>
 	<line><button class="register">Register</button></line>`
 
-const loggedTemplate = `
+const signedTemplate = `
 	<line>Vous êtes connecté en tant que <b class="name"></b></line>
 	<line><button class="signout">Déconnexion</button></line>`
 
@@ -51,8 +51,8 @@ export class HTMLMsaUserRegisterElement extends HTMLElement {
 
 	initUser(next){
 		// check if user has been provided in attributes
-		if(this.hasAttribute("logged")) {
-			if(this.getAttribute("logged") === "true")
+		if(this.hasAttribute("signed")) {
+			if(this.getAttribute("signed") === "true")
 				this.user = { name: this.getAttribute("name") }
 			else this.user = null
 			next()
@@ -65,18 +65,18 @@ export class HTMLMsaUserRegisterElement extends HTMLElement {
 		}
 	}
 
-	getLoggedTemplate(){
-		return loggedTemplate
+	getSignedTemplate(){
+		return signedTemplate
 	}
 
-	getUnloggedTemplate(){
-		return unloggedTemplate
+	getUnsignedTemplate(){
+		return unsignedTemplate
 	}
 
 	initContent(){
 		// display content, in function of user
-		if(this.user) this.innerHTML = this.getLoggedTemplate()
-		else this.innerHTML = this.getUnloggedTemplate()
+		if(this.user) this.innerHTML = this.getSignedTemplate()
+		else this.innerHTML = this.getUnsignedTemplate()
 		if(this.user) this.Q(".name").textContent = this.user.name
 	}
 

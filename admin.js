@@ -1,16 +1,36 @@
-const { UsersDb } = require("./db")
 const msaAdmin = Msa.require("admin")
+const { withDb } = Msa.require("db")
+const { User } = require('./model')
 
-const msaAdminUsers = module.exports = new Msa.Module()
+class MsaUserAdminModule extends Msa.Module {
+	constructor(){
+		super()
+		this.initDeps()
+		this.initApp()
+	}
 
-msaAdminUsers.app.get('/', (req, res) => res.sendPage({ wel:'/user/msa-user-admin.js' }))
+	initDeps(){
+		this.User = User
+	}
 
-msaAdminUsers.app.get('/list', async (req, res, next) => {
-	try {
-		const users = await UsersDb.findAll()
-		res.json(users.map(u => ({ id:u.id, name:u.name, groups:u.groups })))
-	} catch(err) { next(err) }
-})
+	initApp(){
+
+		this.app.get('/', (req, res) => res.sendPage({
+			wel:'/user/msa-user-admin.js'
+		}))
+		
+		this.app.get('/list', async (req, res, next) => {
+			withDb(async db => {
+				const dbUsers = await db.get("SELECT id, name, groups FROM msa_users")
+				res.json(dbUsers.map(u => {
+					return this.User.newFromDb(u)
+				}))
+			}).catch(next)
+		})
+	}
+}
+
+const msaAdminUsers = module.exports = new MsaUserAdminModule()
 
 msaAdmin.register({
 	route: '/users',

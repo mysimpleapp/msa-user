@@ -4,14 +4,14 @@ const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
 
 // template
 
-const unloggedTemplate = `
+const unsignedTemplate = `
 	<h1 class="title"></h1>
 	<p class="text"></p>
 	<line><input type=text name="name" placeholder="username"></line>
 	<line><input type=password name="pass" placeholder="password"></line>
 	<line><button class="signin">Connexion</button></line>
 `
-const loggedTemplate = `
+const signedTemplate = `
 	<h1 class="title"></h1>
 	<p class="text"></p>
 	<line>Vous êtes connecté en tant que <b class="name"></b></line>
@@ -53,8 +53,8 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 
 	initUser(next){
 		// check if user has been provided in attributes
-		if(this.hasAttribute("logged") || this.hasAttribute("unauthorized")) {
-			if(this.getAttribute("logged") === "true")
+		if(this.hasAttribute("signed") || this.hasAttribute("unauthorized")) {
+			if(this.getAttribute("signed") === "true")
 				this.user = { name: this.getAttribute("name") }
 			else this.user = null
 			next()
@@ -67,18 +67,18 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 		}
 	}
 
-	getLoggedTemplate(){
-		return loggedTemplate
+	getSignedTemplate(){
+		return signedTemplate
 	}
 
-	getUnloggedTemplate(){
-		return unloggedTemplate
+	getUnsignedTemplate(){
+		return unsignedTemplate
 	}
 
 	initContent(){
 		// display content, in function of user
-		if(this.user) this.innerHTML = this.getLoggedTemplate()
-		else this.innerHTML = this.getUnloggedTemplate()
+		if(this.user) this.innerHTML = this.getSignedTemplate()
+		else this.innerHTML = this.getUnsignedTemplate()
 		// sync
 		this.sync()
 	}
@@ -118,7 +118,7 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 		this.syncText()
 	}
 	syncText(){
-		// logged name
+		// signed name
 		if(this.user) this.Q(".name").textContent = this.user.name
 		// read attributes
 		const defaultTitle = defArg(
@@ -128,18 +128,18 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 			this.getAttribute("text"),
 			this.hasAttribute("unauthorized") ? "Please signin with a user with valid privileges." : null)
 		// determine titles
-		const loggedTitle = defArg(
-			this.getAttribute("logged-title"),
+		const signedTitle = defArg(
+			this.getAttribute("signed-title"),
 			defaultTitle)
-		const loggedText = defArg(
-			this.getAttribute("logged-text"),
+		const signedText = defArg(
+			this.getAttribute("signed-text"),
 			defaultText)
-		const unloggedTitle = defArg(
-			this.getAttribute("unlogged-title"),
+		const unsignedTitle = defArg(
+			this.getAttribute("unsigned-title"),
 			defaultTitle,
 			"Log-in")
-		const unloggedText = defArg(
-			this.getAttribute("unlogged-text"),
+		const unsignedText = defArg(
+			this.getAttribute("unsigned-text"),
 			defaultText)
 
 		// sync titles & texts
@@ -148,11 +148,11 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 			el.textContent = val ? val : ""
 		}
 		if(this.user){
-			_syncText(this.Q(".title"), loggedTitle)
-			_syncText(this.Q(".text"), loggedText)
+			_syncText(this.Q(".title"), signedTitle)
+			_syncText(this.Q(".text"), signedText)
 		} else {
-			_syncText(this.Q(".title"), unloggedTitle)
-			_syncText(this.Q(".text"), unloggedText)
+			_syncText(this.Q(".title"), unsignedTitle)
+			_syncText(this.Q(".text"), unsignedText)
 		}
 	}
 }

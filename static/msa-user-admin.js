@@ -45,7 +45,7 @@ export default class HTMLMsaUserAdminElement extends HTMLElement {
 		for(let user of this.users){
 			const r = t.insertRow()
 			r.insertCell().textContent = user.name
-			r.insertCell().textContent = user.groups.join(', ')
+			r.insertCell().textContent = user.groups ? user.groups.join(', ') : ""
 		}
 	}
 }

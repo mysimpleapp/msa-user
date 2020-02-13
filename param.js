@@ -4,15 +4,30 @@ const { Perm, PermNum } = require("./perm")
 const { Param } = Msa.require("params")
 
 const ParamPerm = exp.ParamPerm = class extends Param {
-	getAsJsonable(kwargs) {
+	getAsDbVal() {
 		const perm = this.value
-		if (kwargs && kwargs.noDefaults)
-			return perm.expr
-		else
-			return perm.getExpr()
+		return perm && perm.expr
 	}
-	setFromJsonable(val) {
-		this.value.expr = val
+	setFromDbVal(dbVal) {
+		if (dbVal === undefined) {
+			this.value === undefined
+		} else {
+			if (!this.value) {
+				const permCls = this.defaultValue.constructor
+				this.value = new permCls()
+			}
+			this.value.expr = dbVal
+		}
+	}
+	getAsAdminVal() {
+		const perm = this.get()
+		return {
+			expr: perm.getExpr(),
+			defVal: perm.getDefaultValue()
+		}
+	}
+	setFromAdminVal(val) {
+		this.setFromDbVal(val.expr)
 	}
 	getViewer() {
 		return { wel: "/user/msa-user-perm-viewer.js" }
@@ -22,14 +37,16 @@ const ParamPerm = exp.ParamPerm = class extends Param {
 	}
 }
 
-Perm.newParam = function (val) {
-	const perm = new this(val)
-	return new ParamPerm(perm)
+const newParamPerm = exp.newParamPerm = function (permCls, defExpr) {
+	return new ParamPerm(new permCls(defExpr))
 }
 
-PermNum.newParam = function (val) {
-	const perm = new this(val)
-	const param = new ParamPerm(perm)
+Perm.newParam = function (defExpr) {
+	return newParamPerm(this, defExpr)
+}
+
+PermNum.newParam = function (defExpr) {
+	const param = newParamPerm(this, defExpr)
 	const labels = this.prototype.getLabels()
 	const labelsAttr = labels ? { labels: labels.map(l => l.name) } : null
 

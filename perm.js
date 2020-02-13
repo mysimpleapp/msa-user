@@ -28,7 +28,7 @@ exp.Perm = class {
 
 	getDefaultExpr() { }
 
-	getDefaultValue(user) {
+	getDefaultValue() {
 		return false
 	}
 
@@ -43,9 +43,9 @@ exp.Perm = class {
 	checkExpr(expr, user, expVal, prevVal) {
 		if (isAdmin(user)) return true
 		if (expVal === undefined) expVal = this.getDefaultExpectedValue()
-		const val = this.solveExpr(expr, user, prevVal)
-		if (val === undefined) return this.getDefaultValue(user)
-		else return this._checkValue(expVal, val)
+		let val = this.solveExpr(expr, user, prevVal)
+		if (val === undefined) val = this.getDefaultValue()
+		return this._checkValue(expVal, val)
 	}
 
 	solve(user, prevVal) {
@@ -133,25 +133,6 @@ exp.Perm = class {
 			})
 		}
 	}
-
-	// format
-
-	prettyFormat() {
-		return this.prettyFormatExpr(this.expr)
-	}
-
-	prettyFormatExpr(expr) {
-		if (expr === undefined) return ""
-		if (isArr(expr))
-			return expr.map(e => this.prettyFormatExpr(e)).join("; ")
-		if (expr.user) return `${expr.user}: ${this._prettyFormatValue(expr.value)}`
-		if (expr.group) return `${expr.group}: ${this._prettyFormatValue(expr.value)}`
-		return ""
-	}
-
-	_prettyFormatValue(val) {
-		return val
-	}
 }
 
 
@@ -166,7 +147,7 @@ exp.permPublic = new exp.Perm({ group: "all", value: true })
 
 exp.PermNum = class extends exp.Perm {
 
-	getDefaultValue(user) {
+	getDefaultValue() {
 		return 0
 	}
 
@@ -186,15 +167,6 @@ exp.PermNum = class extends exp.Perm {
 	// labels
 
 	getLabels() { }
-
-	// format
-
-	_prettyFormatValue(value) {
-		const labels = this.getLabels()
-		const label = labels ? labels[value] : null
-		if (label) return label.name
-		return super._prettyFormatValue(value)
-	}
 }
 
 exp.permNumAdmin = new exp.PermNum({ group: "all", value: 0 })

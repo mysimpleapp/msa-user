@@ -1,6 +1,6 @@
 import { importHtml, importOnCall, Q, ajax } from '/utils/msa-utils.js'
 
-const addInputPopup = importOnCall("/utils/msa-utils-popup.js", "addInputPopup")
+const importAsInputPopup = importOnCall("/utils/msa-utils-popup.js", "importAsInputPopup")
 const makeSuggestions = importOnCall("/utils/msa-utils-suggest.js", "makeSuggestions")
 
 const isArr = Array.isArray
@@ -135,7 +135,7 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 	initPermUnitActions(tr) {
 
 		tr.querySelector(".user").addEventListener("click", async () => {
-			addInputPopup(this, { wel: "/user/msa-user-selector.js" })
+			importAsInputPopup(this, { wel: "/user/msa-user-selector.js" })
 				.then(val => this.setPermUnitUser(tr, val))
 		})
 

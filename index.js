@@ -10,20 +10,20 @@ const { withDb } = Msa.require("db")
 
 class MsaUserModule extends Msa.Module {
 
-	constructor(){
+	constructor() {
 		super()
 		this.initDeps()
 		this.initApp()
 	}
 
-	initDeps(){
+	initDeps() {
 		this.model = User
 	}
 
-	initApp(){
+	initApp() {
 
 		// pages
-		this.app.get('/', (req, res) => res.redirect('/user/signin') )
+		this.app.get('/', (req, res) => res.redirect('/user/signin'))
 
 		this.app.get('/signin', userMdw, (req, res) => {
 			const user = req.session.user
@@ -51,7 +51,7 @@ class MsaUserModule extends Msa.Module {
 		this.app.get('/user', userMdw, (req, res, next) => {
 			try {
 				this.replyUser(req, res)
-			} catch(err){ next(err) }
+			} catch (err) { next(err) }
 		})
 
 		// signout
@@ -59,14 +59,14 @@ class MsaUserModule extends Msa.Module {
 			try {
 				this.signout(req)
 				this.replyUser(req, res)
-			} catch(err){ next(err) }
+			} catch (err) { next(err) }
 		})
 
 		// signin
 		this.app.post('/signin', userMdw, (req, res, next) => {
 			withDb(async db => {
 				const { key, pass } = this.getCredentials(req)
-				if(!key) throw(Msa.BAD_REQUEST)
+				if (!key) throw (Msa.BAD_REQUEST)
 				await this.signin(req, db, key, pass)
 				this.replyUser(req, res)
 			}).catch(next)
@@ -104,30 +104,30 @@ class MsaUserModule extends Msa.Module {
 		})
 	}
 
-	getCredentials(req){
+	getCredentials(req) {
 		let key, pass
 		const auth = req.headers.authorization, body = req.body
-		if(auth){
+		if (auth) {
 			const auths = auth.split(' ')[1].split(':')
 			key = auths[0]
 			pass = auths[1]
-		} else if(body) {
+		} else if (body) {
 			key = body.key
 			pass = body.pass
 		}
 		return { key, pass }
 	}
 
-	replyUser(req, res){
+	replyUser(req, res) {
 		res.json(req.user)
 	}
 
-	async signin(req, db, key, pass){
+	async signin(req, db, key, pass) {
 		const id = key
 		const dbUser = await this.selectUserFromDb(db, id)
-		if (!dbUser) throw { code:401, text:'Unknown user key' }
+		if (!dbUser) throw { code: 401, text: 'Unknown user key' }
 		const epass = this.encryptPass(pass)
-		if (dbUser.epass!=epass) throw { code:401, text:'Incorrect password' }
+		if (dbUser.epass != epass) throw { code: 401, text: 'Incorrect password' }
 		const user = req.user = req.session.user = {}
 		user.name = dbUser.name
 		user.groups = dbUser.groups
@@ -142,12 +142,12 @@ class MsaUserModule extends Msa.Module {
 		// check if the user already exists
 		const id = this.genUserIdFromName(name)
 		const dbUser = await this.selectUserFromDb(db, id)
-		if(dbUser) throw "User id already exists."
+		if (dbUser) throw "User id already exists."
 		// encrypt pass & transform a little bit the args
 		const email = args && args.email
 		// insert user in DB
 		await db.run("INSERT INTO msa_users (id, name, email, epass, groups) VALUES (:id, :name, :email, :epass, :groups)", {
-			id, name, email, epass:this.encryptPass(pass), groups:[]
+			id, name, email, epass: this.encryptPass(pass), groups: []
 		})
 		return id
 	}
@@ -155,48 +155,48 @@ class MsaUserModule extends Msa.Module {
 	async addGroup(db, key, group) {
 		const id = key
 		const user = await this.selectUserFromDb(db, id)
-		if(!user) throw "User does not exist."
+		if (!user) throw "User does not exist."
 		// add group, if it does not exist yet
 		const groups = user.groups
-		if(groups.indexOf(group) === -1){
+		if (groups.indexOf(group) === -1) {
 			groups.push(group)
 			// update user in DB
 			db.run("UPDATE msa_users SET groups=:groups WHERE id=:id",
-				user.formatForDb(["id","groups"]))
+				user.formatForDb(["id", "groups"]))
 		}
 	}
 
 	async search(db, types, text) {
 		const res = []
-		if(!types || types.indexOf("user")>=0){
+		if (!types || types.indexOf("user") >= 0) {
 			const req = "SELECT id, name FROM msa_users"
 			const fields = {}
-			if(text) {
+			if (text) {
 				req += " WHERE name LIKE :name"
 				fields.name = `%${text}%`
 			}
 			const rows = await db.get(req, fields)
-			rows.forEach(r => res.push({ type:"user", id:r.id, name:r.name }))
+			rows.forEach(r => res.push({ type: "user", id: r.id, name: r.name }))
 		}
-		if(!types || types.indexOf("group")>=0){
-			for(let group of ["admin", "all", "signed"]){
-				if(!text || group.startsWith(text))
-				res.push({ type:"group", id:group, name:group })
+		if (!types || types.indexOf("group") >= 0) {
+			for (let group of ["admin", "all", "signed"]) {
+				if (!text || group.startsWith(text))
+					res.push({ type: "group", id: group, name: group })
 			}
 		}
 		return res
 	}
 
-	async selectUserFromDb(db, id){
+	async selectUserFromDb(db, id) {
 		const dbUser = await db.getOne("SELECT id, name, epass, email, groups FROM msa_users WHERE id=:id", { id })
 		return this.model.newFromDb(dbUser)
 	}
 
-	genUserIdFromName(name){
+	genUserIdFromName(name) {
 		return name
 	}
 
-	encryptPass(pass){
+	encryptPass(pass) {
 		return md5(pass)
 	}
 }
@@ -204,9 +204,10 @@ class MsaUserModule extends Msa.Module {
 // getHtml [DEPRECATED]
 const getHtml = Msa.express.Router()
 getHtml.use(userMdw)
-getHtml.use(function(req, res, next) {
-	next({ head:
-`<script>
+getHtml.use(function (req, res, next) {
+	next({
+		head:
+			`<script>
 	// MsaUser global variable
 	MsaUser = ${JSON.stringify(req.session.user)}
 	// deprecated
@@ -230,6 +231,7 @@ sheetApp.registerTemplate("msa-user-signin", { wel: compUrl+'/msa-user-signin-bo
 
 const exp = module.exports = new MsaUserModule()
 Object.assign(exp, userPerm)
+Object.assign(exp, require('./utils'))
 Object.assign(exp, require('./param'))
 exp.getHtml = getHtml
 exp.userMdw = userMdw

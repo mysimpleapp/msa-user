@@ -41,15 +41,22 @@ exp.Perm = class {
 	}
 
 	checkExpr(expr, user, expVal, prevVal) {
-		if (isAdmin(user)) return true
 		if (expVal === undefined) expVal = this.getDefaultExpectedValue()
-		let val = this.solveExpr(expr, user, prevVal)
-		if (val === undefined) val = this.getDefaultValue()
+		const val = this._solveExpr(expr, user, prevVal)
 		return this._checkValue(expVal, val)
 	}
 
 	solve(user, prevVal) {
-		return this.solveExpr(this.getExpr(), user, prevVal)
+		return this._solveExpr(this.getExpr(), user, prevVal)
+	}
+
+	_solveExpr(expr, user, prevVal) {
+		if (this.overwriteSolve) {
+			const overVal = this.overwriteSolve(user)
+			if (overVal !== undefined) return overVal
+		}
+		const val = this.solveExpr(expr, user, prevVal)
+		return (val !== undefined) ? val : this.getDefaultValue()
 	}
 
 	solveExpr(expr, user, prevVal) {
@@ -180,9 +187,4 @@ const isArr = Array.isArray
 
 function isObj(o) {
 	return (typeof o === 'object') && (o !== null)
-}
-
-function isAdmin(user) {
-	const groups = user && user.groups
-	return (groups && groups.indexOf("admin") >= 0) ? true : false
 }

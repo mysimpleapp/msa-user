@@ -229,9 +229,12 @@ sheetApp.registerTemplate("msa-user-signin", { wel: compUrl+'/msa-user-signin-bo
 })
 */
 
-const exp = module.exports = new MsaUserModule()
-Object.assign(exp, userPerm)
-Object.assign(exp, require('./utils'))
-Object.assign(exp, require('./param'))
-exp.getHtml = getHtml
-exp.userMdw = userMdw
+module.exports = {
+	startMsaModule: () => new MsaUserModule(),
+	MsaUserModule,
+	getHtml,
+	userMdw,
+	...userPerm,
+	...require('./utils'),
+	...require('./param')
+}

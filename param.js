@@ -1,9 +1,7 @@
-const exp = module.exports = {}
-
 const { Perm, PermNum } = require("./perm")
-const { Param } = Msa.require("params")
+const { Param } = Msa.require("params/param")
 
-const ParamPerm = exp.ParamPerm = class extends Param {
+const ParamPerm = class extends Param {
 	getAsDbVal() {
 		const perm = this.value
 		return perm && perm.expr
@@ -37,7 +35,7 @@ const ParamPerm = exp.ParamPerm = class extends Param {
 	}
 }
 
-const newParamPerm = exp.newParamPerm = function (permCls, defExpr) {
+const newParamPerm = function (permCls, defExpr) {
 	return new ParamPerm(new permCls(defExpr))
 }
 
@@ -67,4 +65,9 @@ PermNum.newParam = function (defExpr) {
 	}
 
 	return param
+}
+
+module.exports = {
+	ParamPerm,
+	newParamPerm
 }

@@ -145,7 +145,7 @@ exp.Perm = class {
 
 // perm instances
 
-exp.permAdmin = new exp.Perm({ group: "all", value: false })
+exp.permAdmin = new exp.Perm({ group: "admin", value: true })
 
 exp.permPublic = new exp.Perm({ group: "all", value: true })
 

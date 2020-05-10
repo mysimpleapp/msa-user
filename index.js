@@ -230,6 +230,9 @@ sheetApp.registerTemplate("msa-user-signin", { wel: compUrl+'/msa-user-signin-bo
 */
 
 module.exports = {
+	installMsaModule: async itf => {
+		await require("./install")(itf)
+	},
 	startMsaModule: () => new MsaUserModule(),
 	MsaUserModule,
 	getHtml,

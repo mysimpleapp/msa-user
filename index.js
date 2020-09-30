@@ -12,12 +12,7 @@ class MsaUserModule extends Msa.Module {
 
 	constructor() {
 		super()
-		this.initDeps()
 		this.initApp()
-	}
-
-	initDeps() {
-		this.model = User
 	}
 
 	initApp() {
@@ -189,7 +184,7 @@ class MsaUserModule extends Msa.Module {
 
 	async selectUserFromDb(db, id) {
 		const dbUser = await db.getOne("SELECT id, name, epass, email, groups FROM msa_users WHERE id=:id", { id })
-		return this.model.newFromDb(dbUser)
+		return User.newFromDb(dbUser)
 	}
 
 	genUserIdFromName(name) {

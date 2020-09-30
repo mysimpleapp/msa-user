@@ -1,5 +1,4 @@
-const { promisify:prm } = require('util')
-const msaUser = require('./index.js')
+const { MsaUserModule } = require('./index.js')
 
 module.exports = async itf => {
 	// create table in DB
@@ -24,6 +23,7 @@ module.exports = async itf => {
 				question: "What is its email",
 				type: "email"
 			}])
+			const msaUser = new MsaUserModule()
 			await msaUser.register(db, name, pwd, { email })
 			await msaUser.addGroup(db, name, "admin")
 		}

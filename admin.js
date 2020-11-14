@@ -1,6 +1,5 @@
 const { registerAdminPanel } = Msa.require("admin")
-const { withDb } = Msa.require("db")
-const { User } = require('./model')
+const { db } = Msa.require("db")
 
 class MsaUserAdminModule extends Msa.Module {
 	constructor() {
@@ -15,12 +14,10 @@ class MsaUserAdminModule extends Msa.Module {
 		}))
 
 		this.app.get('/list', async (req, res, next) => {
-			withDb(async db => {
-				const dbUsers = await db.get("SELECT id, name, groups FROM msa_users")
-				res.json(dbUsers.map(u => {
-					return User.newFromDb(u)
-				}))
-			}).catch(next)
+			try {
+				const dbUsers = await db.collection("users").find({}).toArray()
+				res.json(dbUsers)
+			} catch(err) { next(err) }
 		})
 	}
 }

@@ -60,7 +60,7 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 			next()
 		} else {
 			// else, get it from server
-			getUser().then(user => {
+			this.getUser().then(user => {
 				this.user = user
 				next()
 			})

@@ -2,58 +2,51 @@ import { Q, ajax } from '/utils/msa-utils.js'
 
 // template
 
-const unloggedTemplate = `
-		<div><input type=text size=10 name="name" placeholder="username"></div>
-		<div><input type=password size=10 name="pass" placeholder="password"></div>
-		<div><button class="signin">Signin</button></div>
+const unsignedTemplate = `
+	<div><input type=text size=10 name="name" placeholder="username"></div>
+	<div><input type=password size=10 name="pass" placeholder="password"></div>
+	<div><button class="signin">Signin</button></div>
 `
 
-const loggedTemplate = `
+const signedTemplate = `
 	<div style="display:flex; flex-direction:row; align-items: center">
 		<label class="name" style="font-weight: bold;"></label>
 		<input type="image" class="signout" style="width:1em; height:1em; padding-left:5px" src='/user/img/signout'>
 	</div>
 `
-// msa-user-signin-box
 
-function getUser() {
-	if(window.MsaUserPrm === undefined)
-		window.MsaUserPrm = ajax("GET", "/user/user")
-	return window.MsaUserPrm
-}
+// msa-user-signin-box
 
 export class HTMLMsaUserSigninBoxElement extends HTMLElement {
 
 	connectedCallback(){
-		getUser().then(user => {
+		this.getUser().then(user => {
 			this.user = user
 			this.initContent()
 			this.initActions()
 		})
 	}
 
-	getLoggedTemplate(){
-		return loggedTemplate
+	getUser() {
+		if(window.MsaUserPrm === undefined)
+			window.MsaUserPrm = ajax("GET", "/user/user")
+		return window.MsaUserPrm
 	}
 
-	getUnloggedTemplate(){
-		return unloggedTemplate
+	getSignedTemplate(){
+		return signedTemplate
+	}
+
+	getUnsignedTemplate(){
+		return unsignedTemplate
 	}
 
 	initContent(){
 		// display content, in function of user
-		if(this.user) this.innerHTML = this.getLoggedTemplate()
-		else this.innerHTML = this.getUnloggedTemplate()
+		if(this.user) this.innerHTML = this.getSignedTemplate()
+		else this.innerHTML = this.getUnsignedTemplate()
 		// sync
 		this.sync()
-	}
-
-	sync(){
-		this.syncText()
-	}
-	syncText(){
-		// logged name
-		if(this.user) this.Q(".name").textContent = this.user.name
 	}
 
 	initActions(){
@@ -87,9 +80,24 @@ export class HTMLMsaUserSigninBoxElement extends HTMLElement {
 		ajax('POST', '/user/signout')
 		.then(() => location.reload())
 	}
+
+	sync(){
+		this.syncText()
+	}
+	syncText(){
+		// signed name
+		if(this.user) this.Q(".name").textContent = this.user.name
+	}
 }
-
 HTMLMsaUserSigninBoxElement.prototype.Q = Q
-
 customElements.define("msa-user-signin-box", HTMLMsaUserSigninBoxElement)
 
+// box
+
+export async function createMsaBox(ctx) {
+	return document.createElement("msa-user-signin-box")
+}
+
+export async function exportMsaBox(el) {
+	return document.createElement("msa-user-signin-box")
+}

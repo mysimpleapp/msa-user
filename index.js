@@ -3,6 +3,7 @@ const md5 = require('md5')
 const userMdw = require('./mdw')
 const userPerm = require('./perm')
 const permAdmin = userPerm.permAdmin
+const { registerMsaBox } = Msa.require("utils")
 const { db } = Msa.require("db")
 
 // MsaUserModule
@@ -188,10 +189,11 @@ class MsaUserModule extends Msa.Module {
 	}
 }
 
-// getHtml [DEPRECATED]
-const getHtml = Msa.express.Router()
-getHtml.use(userMdw)
-getHtml.use(function (req, res, next) {
+// getHtml
+
+const getHtmlRouter = Msa.express.Router()
+getHtmlRouter.use(userMdw)
+getHtmlRouter.use(function (req, res, next) {
 	next({
 		head:
 			`<script>
@@ -202,6 +204,21 @@ getHtml.use(function (req, res, next) {
 	Msa.user = MsaUser
 </script>`
 	})
+})
+
+function getHtml(req) {
+	return new Promise((ok, ko) => {
+		getHtmlRouter(req, {}, ok)
+	})
+}
+
+// box
+
+registerMsaBox("msa-user-signin-box", {
+	title: "Signin",
+	head: "/user/msa-user-signin-box.js",
+	createRef: "/user/msa-user-signin-box.js:createMsaBox",
+	exportRef: "/user/msa-user-signin-box.js:exportMsaBox"
 })
 
 // admin panel

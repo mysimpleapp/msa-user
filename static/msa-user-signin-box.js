@@ -1,4 +1,4 @@
-import { Q, ajax } from '/utils/msa-utils.js'
+import { Q, ajax, registerMsaBox } from '/utils/msa-utils.js'
 
 // template
 
@@ -91,6 +91,15 @@ export class HTMLMsaUserSigninBoxElement extends HTMLElement {
 }
 HTMLMsaUserSigninBoxElement.prototype.Q = Q
 customElements.define("msa-user-signin-box", HTMLMsaUserSigninBoxElement)
+
+registerMsaBox("msa-user-signin-box", {
+	createBox: function(ctx) {
+		return document.createElement("msa-user-signin-box")
+	},
+	exportBox: function(el) {
+		return document.createElement("msa-user-signin-box")
+	}
+})
 
 // box
 

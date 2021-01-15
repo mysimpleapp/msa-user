@@ -216,9 +216,7 @@ function getHtml(req) {
 
 registerMsaBox("msa-user-signin-box", {
 	title: "Signin",
-	head: "/user/msa-user-signin-box.js",
-	createRef: "/user/msa-user-signin-box.js:createMsaBox",
-	exportRef: "/user/msa-user-signin-box.js:exportMsaBox"
+	head: "/user/msa-user-signin-box.js"
 })
 
 // admin panel

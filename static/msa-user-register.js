@@ -1,6 +1,6 @@
-import { Q, ajax, importHtml, importOnCall } from '/utils/msa-utils.js'
+import { Q, ajax, importHtml, importOnCall } from '/msa/utils/msa-utils.js'
 
-const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
+const addErrorPopup = importOnCall("/msa/utils/msa-utils-popup.js", "addErrorPopup")
 
 // template
 
@@ -101,14 +101,14 @@ export class HTMLMsaUserRegisterElement extends HTMLElement {
 		const name = this.Q("input[name=name]").value,
 			pass = this.Q("input[name=pass]").value,
 			email = this.Q("input[name=email]").value
-		ajax('POST', '/user/register',
+		ajax('POST', '/msa/user/register',
 			{ body: { name:name, pass:pass, email:email }})
 		.then(user => { if(user) location.reload() })
 		.catch(err => addErrorPopup(this, err))
 	}
 
 	postSignout(){
-		ajax('POST', '/user/signout')
+		ajax('POST', '/msa/user/signout')
 		.then(() => location.reload())
 	}
 }

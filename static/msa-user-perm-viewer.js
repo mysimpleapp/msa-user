@@ -1,4 +1,4 @@
-import { importHtml } from '/utils/msa-utils.js'
+import { importHtml } from '/msa/utils/msa-utils.js'
 
 
 importHtml(`<style>

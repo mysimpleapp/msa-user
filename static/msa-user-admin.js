@@ -1,4 +1,4 @@
-import { Q, ajax, importHtml } from '/utils/msa-utils.js'
+import { Q, ajax, importHtml } from '/msa/utils/msa-utils.js'
 
 // template
 
@@ -34,7 +34,7 @@ export default class HTMLMsaUserAdminElement extends HTMLElement {
 		this.listUsers()
 	}
 	listUsers() {
-		ajax('GET', '/admin/users/list')
+		ajax('GET', '/msa/admin/users/list')
 		.then(users => {
 			this.users = users
 			this.sync()

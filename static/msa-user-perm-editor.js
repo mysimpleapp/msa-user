@@ -1,7 +1,7 @@
-import { importHtml, importOnCall, Q, ajax } from '/utils/msa-utils.js'
+import { importHtml, importOnCall, Q, ajax } from '/msa/utils/msa-utils.js'
 
-const importAsInputPopup = importOnCall("/utils/msa-utils-popup.js", "importAsInputPopup")
-const makeSuggestions = importOnCall("/utils/msa-utils-suggest.js", "makeSuggestions")
+const importAsInputPopup = importOnCall("/msa/utils/msa-utils-popup.js", "importAsInputPopup")
+const makeSuggestions = importOnCall("/msa/utils/msa-utils-suggest.js", "makeSuggestions")
 
 const isArr = Array.isArray
 
@@ -13,14 +13,14 @@ const template = `
 		<tbody></tbody>
 	</table>
 	<div class="actions">
-		<input type="image" class="icon add" src="/utils/img/add">
+		<input type="image" class="icon add" src="/msa/utils/img/add">
 	</div>`
 
 const permTrTemplate = `
 	<tr class="permUnit">
 		<td class="user"></td>
 		<td class="perm" tabindex=0></td>
-		<td class="actions"><input type="image" class="icon rm" src="/utils/img/remove"></td>
+		<td class="actions"><input type="image" class="icon rm" src="/msa/utils/img/remove"></td>
 	</tr>`
 
 // style
@@ -135,7 +135,7 @@ export class HTMLMsaUserPermEditorElement extends HTMLElement {
 	initPermUnitActions(tr) {
 
 		tr.querySelector(".user").addEventListener("click", async () => {
-			importAsInputPopup(this, { wel: "/user/msa-user-selector.js" })
+			importAsInputPopup(this, { wel: "/msa/user/msa-user-selector.js" })
 				.then(val => this.setPermUnitUser(tr, val))
 		})
 

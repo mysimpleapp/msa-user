@@ -1,6 +1,6 @@
-import { Q, ajax, importHtml, importOnCall } from '/utils/msa-utils.js'
+import { Q, ajax, importHtml, importOnCall } from '/msa/utils/msa-utils.js'
 
-const addErrorPopup = importOnCall("/utils/msa-utils-popup.js", "addErrorPopup")
+const addErrorPopup = importOnCall("/msa/utils/msa-utils-popup.js", "addErrorPopup")
 
 // template
 
@@ -47,7 +47,7 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 
 	getUser() {
 		if(window.MsaUserPrm === undefined)
-			window.MsaUserPrm = ajax("GET", "/user/user")
+			window.MsaUserPrm = ajax("GET", "/msa/user/user")
 		return window.MsaUserPrm
 	}
 
@@ -103,14 +103,14 @@ export class HTMLMsaUserSigninElement extends HTMLElement {
 	postSignin(){
 		const name = this.Q("input[name=name]").value,
 			pass = this.Q("input[name=pass]").value
-		ajax('POST', '/user/signin',
+		ajax('POST', '/msa/user/signin',
 			{ header:{ Authorization: "Basic "+name+":"+pass }})
 		.then(user => { if(user) location.reload() })
 		.catch(err => addErrorPopup(this, err))
 	}
 
 	postSignout(){
-		ajax('POST', '/user/signout')
+		ajax('POST', '/msa/user/signout')
 		.then(() => location.reload())
 	}
 

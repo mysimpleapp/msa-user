@@ -10,7 +10,7 @@ class MsaUserAdminModule extends Msa.Module {
 	initApp() {
 
 		this.app.get('/', (req, res) => res.sendPage({
-			wel: '/user/msa-user-admin.js'
+			wel: '/msa/user/msa-user-admin.js'
 		}))
 
 		this.app.get('/list', async (req, res, next) => {

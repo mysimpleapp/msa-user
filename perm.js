@@ -5,7 +5,7 @@ const userMdw = require('./mdw')
 // unauthorized /////////////////////
 
 const unauthHtml = exp.unauthHtml = {
-	wel: '/user/msa-user-signin.js',
+	wel: '/msa/user/msa-user-signin.js',
 	attrs: {
 		unauthorized: true
 	}

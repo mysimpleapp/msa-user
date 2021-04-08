@@ -28,10 +28,10 @@ const ParamPerm = class extends Param {
 		this.setFromDbVal(val.expr)
 	}
 	getViewer() {
-		return { wel: "/user/msa-user-perm-viewer.js" }
+		return { wel: "/msa/user/msa-user-perm-viewer.js" }
 	}
 	getEditor() {
-		return { wel: "/user/msa-user-perm-editor.js" }
+		return { wel: "/msa/user/msa-user-perm-editor.js" }
 	}
 }
 
@@ -50,7 +50,7 @@ PermNum.newParam = function (defExpr) {
 
 	param.getViewer = function () {
 		return {
-			wel: "/user/msa-user-perm-viewer.js",
+			wel: "/msa/user/msa-user-perm-viewer.js",
 			tag: "msa-user-perm-num-viewer",
 			attrs: labelsAttr
 		}
@@ -58,7 +58,7 @@ PermNum.newParam = function (defExpr) {
 
 	param.getEditor = function () {
 		return {
-			wel: "/user/msa-user-perm-editor.js",
+			wel: "/msa/user/msa-user-perm-editor.js",
 			tag: "msa-user-perm-num-editor",
 			attrs: labelsAttr
 		}

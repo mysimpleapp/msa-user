@@ -18,12 +18,12 @@ class MsaUserModule extends Msa.Module {
 	initApp() {
 
 		// pages
-		this.app.get('/', (req, res) => res.redirect('/user/signin'))
+		this.app.get('/', (req, res) => res.redirect('/msa/user/signin'))
 
 		this.app.get('/signin', userMdw, (req, res) => {
 			const user = req.session.user
 			res.sendPage({
-				wel: '/user/msa-user-signin.js',
+				wel: '/msa/user/msa-user-signin.js',
 				attrs: {
 					signed: user ? true : false,
 					name: user ? user.name : undefined
@@ -34,7 +34,7 @@ class MsaUserModule extends Msa.Module {
 		this.app.get('/register', userMdw, (req, res) => {
 			const user = req.session.user
 			res.sendPage({
-				wel: '/user/msa-user-register.js',
+				wel: '/msa/user/msa-user-register.js',
 				attrs: {
 					signed: user ? true : false,
 					name: user ? user.name : undefined
@@ -216,20 +216,11 @@ function getHtml(req) {
 
 registerMsaBox("msa-user-signin-box", {
 	title: "Signin",
-	head: "/user/msa-user-signin-box.js"
+	head: "/msa/user/msa-user-signin-box.js"
 })
 
 // admin panel
 require("./admin")
-
-// sheet box /////////////////////////////////////////////////////////
-/*
-var sheetApp = Msa.require("msa-sheet")
-
-sheetApp.registerTemplate("msa-user-signin", { wel: compUrl+'/msa-user-signin-box.html' }, {
-	img: "<img src='data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22%23999%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cpath%20class%3D%22path1%22%20d%3D%22M18%2022.082v-1.649c2.203-1.241%204-4.337%204-7.432%200-4.971%200-9-6-9s-6%204.029-6%209c0%203.096%201.797%206.191%204%207.432v1.649c-6.784%200.555-12%203.888-12%207.918h28c0-4.030-5.216-7.364-12-7.918z%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E'>"
-})
-*/
 
 module.exports = {
 	installMsaModule: async itf => {

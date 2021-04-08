@@ -1,6 +1,6 @@
-import { Q, ajax, importHtml, importOnCall } from "/utils/msa-utils.js"
+import { Q, ajax, importHtml, importOnCall } from "/msa/utils/msa-utils.js"
 
-const makeSuggestions = importOnCall("/utils/msa-utils-suggest.js", "makeSuggestions")
+const makeSuggestions = importOnCall("/msa/utils/msa-utils-suggest.js", "makeSuggestions")
 
 // style
 
@@ -84,7 +84,7 @@ export class HTMLMsaUserSelectorElement extends HTMLElement {
 		const types = []
 		if(this.Q("input.users").checked) types.push("user")
 		if(this.Q("input.groups").checked) types.push("group")
-		return ajax("GET", "/user/search", {
+		return ajax("GET", "/msa/user/search", {
 			query: { text, types }
 		})
 	}
@@ -96,8 +96,8 @@ export class HTMLMsaUserSelectorElement extends HTMLElement {
 		}, {
 			formatSuggestion: suggest => {
 				let imgSrc
-				if(suggest.type === "user") imgSrc = "/user/img/user"
-				else if(suggest.type === "group") imgSrc = "/user/img/group"
+				if(suggest.type === "user") imgSrc = "/msa/user/img/user"
+				else if(suggest.type === "group") imgSrc = "/msa/user/img/group"
 				const tmpl = document.createElement("template")
 				tmpl.innerHTML = suggestionTemplate
 				const res = tmpl.content.children[0]
